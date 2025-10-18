@@ -1,6 +1,6 @@
 # app/models/usuario.py
-from pony.orm import PrimaryKey, Required
-from database.database import db
+from pony.orm import PrimaryKey, Required, Set
+from app.database.database import db
 
 
 class Usuario(db.Entity):
@@ -11,3 +11,4 @@ class Usuario(db.Entity):
     password = Required(str)
     email = Required(str)
     username = Required(str)
+    egresos = Set("Egreso")
