@@ -4,20 +4,22 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # Importar modelo ANTES de init_database
 from models.usuario import Usuario
+from models.ingreso import Ingreso
+from app.models.egreso import Egreso
 
 # Importar e inicializar base de datos
-from database.database import init_database
+from app.database.database import init_database
 
 init_database()
 
 # Importar rutas
-from routes import usuarioRoutes, authRoutes
+from routes import usuarioRoutes, ingresoRoutes, egresoRoutes, authRoutes
 
 # Crear app
 app = FastAPI(
     title="Sistema Experto Financiero - API",
     version="1.0.0",
-    description="API para gestión de usuarios con Pony ORM",
+    description="API para gestión de usuarios y egresos con Pony ORM",
 )
 
 # Configurar CORS (opcional)
@@ -43,3 +45,5 @@ def root():
 # Incluir rutas
 app.include_router(authRoutes.router)
 app.include_router(usuarioRoutes.router)
+app.include_router(ingresoRoutes.router)
+app.include_router(egresoRoutes.router)
