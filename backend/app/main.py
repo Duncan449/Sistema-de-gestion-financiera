@@ -3,8 +3,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 # Importar modelo ANTES de init_database
-from app.models.usuario import Usuario
-from app.models.egreso import Egreso  
+from models.usuario import Usuario
+from models.ingreso import Ingreso
+from app.models.egreso import Egreso
 
 # Importar e inicializar base de datos
 from app.database.database import init_database
@@ -12,7 +13,7 @@ from app.database.database import init_database
 init_database()
 
 # Importar rutas
-from app.routes import usuarioRoutes, egresoRoutes 
+from routes import usuarioRoutes, ingresoRoutes, egresoRoutes
 
 # Crear app
 app = FastAPI(
@@ -30,7 +31,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 # Ruta raíz
 @app.get("/")
 def root():
@@ -42,4 +42,5 @@ def root():
 
 # Incluir rutas
 app.include_router(usuarioRoutes.router)
+app.include_router(ingresoRoutes.router)
 app.include_router(egresoRoutes.router)
