@@ -2,8 +2,8 @@
 from typing import List
 from fastapi import HTTPException
 from pony.orm import db_session, commit, select
-from models.usuario import Usuario
-from schemas.usuario import UsuarioOut, UsuarioCreate, UsuarioUpdate
+from app.models.usuario import Usuario
+from app.schemas.usuario import UsuarioOut, UsuarioCreate, UsuarioUpdate
 
 
 # GET USUARIOS - Devuelve la lista de usuarios

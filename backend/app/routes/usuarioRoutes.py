@@ -1,14 +1,14 @@
 # app/routes/usuarioRoutes.py
 from fastapi import APIRouter
 from typing import List
-from controllers.usuarioControllers import (
+from app.controllers.usuarioControllers import (
     get_usuarios,
     get_usuario,
     post_usuario,
     put_usuario,
     delete_usuario,
 )
-from schemas.usuario import UsuarioCreate, UsuarioUpdate, UsuarioOut
+from app.schemas.usuario import UsuarioCreate, UsuarioUpdate, UsuarioOut
 
 router = APIRouter(prefix="/usuarios", tags=["Usuarios"])
 

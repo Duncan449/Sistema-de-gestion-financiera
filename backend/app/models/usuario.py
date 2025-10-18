@@ -12,3 +12,4 @@ class Usuario(db.Entity):
     email = Required(str)
     username = Required(str)
     ingresos = Set("Ingreso") # Relación inversa para la FK (un usuario puede tener muchos ingresos)
+    egresos = Set("Egreso")
