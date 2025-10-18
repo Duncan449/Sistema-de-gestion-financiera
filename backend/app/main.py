@@ -11,7 +11,7 @@ from database.database import init_database
 init_database()
 
 # Importar rutas
-from routes import usuarioRoutes
+from routes import usuarioRoutes, authRoutes
 
 # Crear app
 app = FastAPI(
@@ -41,4 +41,5 @@ def root():
 
 
 # Incluir rutas
+app.include_router(authRoutes.router)
 app.include_router(usuarioRoutes.router)
