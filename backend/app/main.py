@@ -32,7 +32,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 # Ruta raíz
 @app.get("/")
 def root():
@@ -41,7 +40,6 @@ def root():
         "status": "funcionando correctamente",
         "version": "1.0.0",
     }
-
 
 # Incluir rutas
 app.include_router(authRoutes.router)
