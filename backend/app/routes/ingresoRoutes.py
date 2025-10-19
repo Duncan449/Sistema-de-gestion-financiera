@@ -1,39 +1,50 @@
 # app/routes/ingresoRoutes.py
 from fastapi import APIRouter, Depends
 from typing import List
-from controllers.ingresoControllers import (
-    get_ingresos,
-    get_ingreso,
-    post_ingreso,
-    put_ingreso,
-    delete_ingreso
+from app.controllers.ingresoControllers import (
+    get_ingresos_controller,
+    get_ingreso_controller,
+    post_ingreso_controller,
+    put_ingreso_controller,
+    delete_ingreso_controller,
 )
-from schemas.ingreso import IngresoCreate, IngresoUpdate, IngresoOut
+from app.services.auth_service import obtener_usuario_autenticado
+from app.schemas.ingreso import IngresoCreate, IngresoUpdate, IngresoOut
 
-# Función que retorna el usuario_id automáticamente
-def get_usuario_id() -> int:
-    return 4  # Por ahora retorna 1 para testing
 
 router = APIRouter(prefix="/ingresos", tags=["Ingresos"])
 
+
 @router.get("/", response_model=List[IngresoOut])
-def listar_ingresos():
-    return get_ingresos()
+def listar_ingresos(usuario: dict = Depends(obtener_usuario_autenticado)):
+    return get_ingresos_controller(usuario)
+
 
 @router.get("/{ingreso_id}", response_model=IngresoOut)
-def obtener_ingreso(ingreso_id: int):
-    return get_ingreso(ingreso_id)
+def obtener_ingreso(
+    ingreso_id: int, usuario: dict = Depends(obtener_usuario_autenticado)
+):
+    return get_ingreso_controller(ingreso_id, usuario)
+
 
 @router.post("/", response_model=IngresoOut, status_code=201)
 def crear_ingreso(
-    ingreso: IngresoCreate):
-     return post_ingreso(ingreso)
+    ingreso: IngresoCreate, usuario: dict = Depends(obtener_usuario_autenticado)
+):
+    return post_ingreso_controller(ingreso, usuario)
+
 
 @router.put("/{ingreso_id}", response_model=IngresoOut)
-def actualizar_ingreso(ingreso_id: int, ingreso: IngresoUpdate):
-    return put_ingreso(ingreso_id, ingreso)
+def actualizar_ingreso(
+    ingreso_id: int,
+    ingreso: IngresoUpdate,
+    usuario: dict = Depends(obtener_usuario_autenticado),
+):
+    return put_ingreso_controller(ingreso_id, ingreso, usuario)
+
 
 @router.delete("/{ingreso_id}")
-def eliminar_ingreso(ingreso_id: int):
-    return delete_ingreso(ingreso_id)
-     
+def eliminar_ingreso(
+    ingreso_id: int, usuario: dict = Depends(obtener_usuario_autenticado)
+):
+    return delete_ingreso_controller(ingreso_id, usuario)

@@ -1,177 +1,120 @@
-# app/controllers/usuarioControllers.py
-from typing import List
+# app/controllers/usuarioController.py
 from fastapi import HTTPException
-from pony.orm import db_session, commit, select
-from app.models.usuario import Usuario
-from app.schemas.usuario import UsuarioOut, UsuarioCreate, UsuarioUpdate
+from app.services.usuarioService import (
+    get_usuarios,
+    get_usuario,
+    put_usuario,
+    delete_usuario,
+)
 
 
-# GET USUARIOS - Devuelve la lista de usuarios
-@db_session
-def get_usuarios() -> List[dict]:
-    """Obtiene todos los usuarios"""
+def get_usuarios_controller(usuario_autenticado: dict) -> list:
+    """
+    Controller para GET /usuarios
+
+    Responsabilidad:
+    - Llamar al servicio
+    - Convertir ValueError a HTTPException
+    - Retornar respuesta HTTP
+    """
     try:
-        # Usar query más directa
-        usuarios_query = Usuario.select().order_by(Usuario.id)
+        print(f"Usuario autenticado: {usuario_autenticado['email']}")
 
-        resultado = []
-        for usuario in usuarios_query:
-            resultado.append(
-                {
-                    "id": usuario.id,
-                    "nombre_completo": usuario.nombre_completo,
-                    "password": usuario.password,
-                    "email": usuario.email,
-                    "username": usuario.username,
-                }
-            )
+        return get_usuarios()
 
-        return resultado
-
-    except Exception as e:
-        print(f"❌ Error en get_usuarios: {e}")
+    except ValueError as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
-# GET USUARIO - Obtener un usuario por ID
-@db_session
-def get_usuario(usuario_id: int) -> dict:
-    """
-    Obtiene un usuario específico por su ID
-    """
-    try:
-        usuario = Usuario.get(id=usuario_id)
-
-        if not usuario:
-            raise HTTPException(status_code=404, detail="Usuario no encontrado")
-
-        return {
-            "id": usuario.id,
-            "nombre_completo": usuario.nombre_completo,
-            "password": usuario.password,
-            "email": usuario.email,
-            "username": usuario.username,
-        }
-    except HTTPException:
-        raise
     except Exception as e:
-        print("❌ Error en get_usuario:", e)
-        raise HTTPException(
-            status_code=500, detail=f"Error al obtener el usuario: {str(e)}"
-        )
+        print(f"Error en get_usuarios_controller: {e}")
+        raise HTTPException(status_code=500, detail="Error interno del servidor")
 
 
-# POST USUARIO - Permite crear un usuario
-@db_session
-def post_usuario(usuario: UsuarioCreate):
+def get_usuario_controller(usuario_id: int, usuario_autenticado: dict) -> dict:
     """
-    Crea un nuevo usuario en la base de datos
+    Controller para GET /usuarios/{usuario_id}
+
+    Convierte errores de negocio a errores HTTP:
+    - ValueError → 404 o 400
     """
     try:
-        # Verificar si ya existe un usuario con ese email o username
-        if Usuario.exists(email=usuario.email):
-            raise HTTPException(status_code=400, detail="El email ya está registrado")
+        # Ejemplo: Solo dejar que los usuarios vean su propio perfil
+        # if usuario_autenticado["usuario_id"] != usuario_id:
+        #     raise HTTPException(status_code=403, detail="No tienes permiso para ver este usuario")
+        return get_usuario(usuario_id)
 
-        if Usuario.exists(username=usuario.username):
+    except ValueError as e:
+        error_msg = str(e)
+        if "no encontrado" in error_msg.lower():
+            raise HTTPException(status_code=404, detail=error_msg)
+        raise HTTPException(status_code=400, detail=error_msg)
+
+    except Exception as e:
+        print(f"Error en get_usuario_controller: {e}")
+        raise HTTPException(status_code=500, detail="Error interno del servidor")
+
+
+def put_usuario_controller(
+    usuario_id: int, datos: dict, usuario_autenticado: dict
+) -> dict:
+    """
+    Controller para PUT /usuarios/{usuario_id}
+
+    Recibe datos del usuario y los pasa al servicio.
+    El servicio maneja la lógica, el controller maneja HTTP.
+    Seguridad: un usuario solo puede actualizar su propio perfil
+    """
+    try:
+        # Validar que el usuario solo pueda editar su propio perfil
+        if usuario_autenticado["usuario_id"] != usuario_id:
             raise HTTPException(
-                status_code=400, detail="El username ya está registrado"
+                status_code=403, detail="No tienes permiso para editar este usuario"
             )
 
-        # Crear el nuevo usuario
-        nuevo_usuario = Usuario(
-            nombre_completo=usuario.nombre_completo,
-            password=usuario.password,
-            email=usuario.email,
-            username=usuario.username,
-        )
+        return put_usuario(usuario_id, datos)
 
-        commit()  # Guardar los cambios
+    except ValueError as e:
+        error_msg = str(e)
 
-        return {
-            "id": nuevo_usuario.id,
-            "nombre_completo": nuevo_usuario.nombre_completo,
-            "password": nuevo_usuario.password,
-            "email": nuevo_usuario.email,
-            "username": nuevo_usuario.username,
-        }
+        # Determinar el código HTTP según el error
+        if "no encontrado" in error_msg.lower():
+            raise HTTPException(status_code=404, detail=error_msg)
+        elif "ya está registrado" in error_msg.lower():
+            raise HTTPException(status_code=400, detail=error_msg)
+        elif "No hay campos" in error_msg:
+            raise HTTPException(status_code=400, detail=error_msg)
+        elif "No puedes cambiar" in error_msg:
+            raise HTTPException(status_code=400, detail=error_msg)
 
-    except HTTPException:
-        raise
+        raise HTTPException(status_code=400, detail=error_msg)
+
     except Exception as e:
-        print("❌ Error en post_usuario:", e)
-        raise HTTPException(
-            status_code=400, detail=f"Error al crear el usuario: {str(e)}"
-        )
+        print(f"Error en put_usuario_controller: {e}")
+        raise HTTPException(status_code=500, detail="Error interno del servidor")
 
 
-# PUT USUARIO - Permite modificar un usuario
-@db_session
-def put_usuario(usuario_id: int, data: UsuarioUpdate) -> dict:
-    """Actualiza un usuario"""
-    try:
-        usuario = Usuario[usuario_id]
-
-        # Obtener campos a actualizar
-        datos = data.dict(exclude_unset=True)
-
-        if not datos:
-            raise HTTPException(status_code=400, detail="No hay campos para actualizar")
-
-        # Verificar duplicados
-        if "email" in datos and datos["email"] != usuario.email:
-            if Usuario.exists(email=datos["email"]):
-                raise HTTPException(
-                    status_code=400, detail="El email ya está registrado"
-                )
-
-        if "username" in datos and datos["username"] != usuario.username:
-            if Usuario.exists(username=datos["username"]):
-                raise HTTPException(
-                    status_code=400, detail="El username ya está registrado"
-                )
-
-        # Actualizar campos
-        for campo, valor in datos.items():
-            setattr(usuario, campo, valor)
-
-        commit()
-
-        return {
-            "id": usuario.id,
-            "nombre_completo": usuario.nombre_completo,
-            "password": usuario.password,
-            "email": usuario.email,
-            "username": usuario.username,
-        }
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        print(f"❌ Error en put_usuario: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-# DELETE USUARIO - Permite eliminar un usuario por ID
-@db_session
-def delete_usuario(usuario_id: int):
+def delete_usuario_controller(usuario_id: int, usuario_autenticado: dict) -> dict:
     """
-    Elimina un usuario de la base de datos
+    Controller para DELETE /usuarios/{usuario_id}
+
+    Seguridad: Un usuario solo puede eliminar su propia cuenta
+
     """
     try:
-        usuario = Usuario.get(id=usuario_id)
 
-        if not usuario:
-            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        # Validar que el usuario solo pueda eliminar su propia cuenta
+        if usuario_autenticado["usuario_id"] != usuario_id:
+            raise HTTPException(
+                status_code=403, detail="No tienes permiso para eliminar este usuario"
+            )
 
-        usuario.delete()
-        commit()
+        return delete_usuario(usuario_id)
 
-        return {"mensaje": f"Usuario con ID {usuario_id} eliminado correctamente"}
+    except ValueError as e:
+        error_msg = str(e)
+        if "no encontrado" in error_msg.lower():
+            raise HTTPException(status_code=404, detail=error_msg)
+        raise HTTPException(status_code=400, detail=error_msg)
 
-    except HTTPException:
-        raise
     except Exception as e:
-        print("❌ Error en delete_usuario:", e)
-        raise HTTPException(
-            status_code=500, detail=f"Error al eliminar el usuario: {str(e)}"
-        )
+        print(f"Error en delete_usuario_controller: {e}")
+        raise HTTPException(status_code=500, detail="Error interno del servidor")

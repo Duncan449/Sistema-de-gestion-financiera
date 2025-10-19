@@ -6,7 +6,7 @@ from datetime import date
 
 class Egreso(db.Entity):
     _table_ = "egresos"
-    
+
     id = PrimaryKey(int, auto=True)
     monto = Required(float)
     categoria = Required(str)

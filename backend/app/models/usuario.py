@@ -1,6 +1,6 @@
 # app/models/usuario.py
 from pony.orm import PrimaryKey, Required, Set
-from database.database import db
+from app.database.database import db
 
 
 class Usuario(db.Entity):
@@ -11,5 +11,7 @@ class Usuario(db.Entity):
     password = Required(str)
     email = Required(str)
     username = Required(str)
-    ingresos = Set("Ingreso") # Relación inversa para la FK (un usuario puede tener muchos ingresos)
+    ingresos = Set(
+        "Ingreso"
+    )  # Relación inversa para la FK (un usuario puede tener muchos ingresos)
     egresos = Set("Egreso")
