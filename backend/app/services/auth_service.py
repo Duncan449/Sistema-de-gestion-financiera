@@ -4,12 +4,14 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 import jwt
 from passlib.context import CryptContext
-from fastapi import HTTPException
+from fastapi import HTTPException, Depends
 from pony.orm import db_session
-from models.usuario import Usuario
+from app.models.usuario import Usuario
 import os
 from dotenv import load_dotenv
 from pony.orm import commit
+from fastapi.security import HTTPBearer
+from starlette.requests import Request
 
 
 load_dotenv()
@@ -34,6 +36,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 # Algoritmo JWT
 ALGORITHM = "HS256"  # Es el algoritmo estándar para firmar JWT
 
+security = HTTPBearer()
 
 # ========== FUNCIONES DE HASH ==========
 
@@ -263,3 +266,49 @@ def cambiar_contraseña_usuario(
     except Exception as e:
         print(f"Error al cambiar_contraseña_usuario: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ========== FUNCIONES PARA VALIDACIÓN DE TOKENS ==========
+
+
+def obtener_usuario_del_token(token: str) -> dict:
+    """
+    Valida un JWT token y devuelve los datos del usuario.
+    """
+    try:
+        datos_token = verify_token(token)
+        return datos_token
+
+    except Exception as e:
+        raise ValueError(f"Token inválido: {str(e)}")
+
+
+# Dependency de FastAPI para proteger rutas
+def obtener_usuario_autenticado(request: Request) -> dict:
+    """
+    Dependency de FastAPI que valida el token en cada request.
+
+    Uso en rutas:
+    @router.get("/perfil")
+    def obtener_perfil(usuario: dict = Depends(obtener_usuario_autenticado)):
+        return {"mensaje": f"Hola {usuario['email']}"}
+
+    Automaticamente:
+    1. Extrae el token del header Authorization: Bearer {token}
+    2. Lo valida
+    3. Si es válido, pasa los datos del usuario al endpoint
+    4. Si no, devuelve 403 Forbidden
+    """
+    try:
+        # Obtener el token del header Authorization
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            raise HTTPException(status_code=403, detail="Token no proporcionado")
+
+        token = auth_header.replace("Bearer ", "")
+        return obtener_usuario_del_token(token)
+
+    except ValueError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=403, detail="Token inválido o expirado")

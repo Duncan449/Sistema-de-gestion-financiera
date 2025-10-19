@@ -1,7 +1,7 @@
 # app/services/usuarioService.py
 from pony.orm import db_session, commit
-from models.usuario import Usuario
-from schemas.usuario import UsuarioUpdate
+from app.models.usuario import Usuario
+from app.schemas.usuario import UsuarioUpdate
 
 
 # IMPORTANTE: En services NO hay HTTPException ni respuestas HTTP

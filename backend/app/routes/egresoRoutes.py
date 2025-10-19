@@ -2,44 +2,49 @@
 from fastapi import APIRouter, Depends
 from typing import List
 from app.controllers.egresoControllers import (
-    get_egresos,
-    get_egreso,
-    post_egreso,
-    put_egreso,
-    delete_egreso
+    get_egresos_controller,
+    get_egreso_controller,
+    post_egreso_controller,
+    put_egreso_controller,
+    delete_egreso_controller,
 )
+from app.services.auth_service import obtener_usuario_autenticado
 from app.schemas.egreso import EgresoCreate, EgresoUpdate, EgresoOut
-
-
-# Función que retorna el usuario_id automáticamente
-def get_usuario_id() -> int:
-    return 4  # Por ahora retorna 1 para testing
 
 
 router = APIRouter(prefix="/egresos", tags=["Egresos"])
 
 
 @router.get("/", response_model=List[EgresoOut])
-def listar_egresos():
-    return get_egresos()
+def listar_egresos(usuario: dict = Depends(obtener_usuario_autenticado)):
+    return get_egresos_controller(usuario)
 
 
 @router.get("/{egreso_id}", response_model=EgresoOut)
-def obtener_egreso(egreso_id: int):
-    return get_egreso(egreso_id)
+def obtener_egreso(
+    egreso_id: int, usuario: dict = Depends(obtener_usuario_autenticado)
+):
+    return get_egreso_controller(egreso_id, usuario)
 
 
 @router.post("/", response_model=EgresoOut, status_code=201)
 def crear_egreso(
-    egreso: EgresoCreate):
-    return post_egreso(egreso)
+    egreso: EgresoCreate, usuario: dict = Depends(obtener_usuario_autenticado)
+):
+    return post_egreso_controller(egreso, usuario)
 
 
 @router.put("/{egreso_id}", response_model=EgresoOut)
-def actualizar_egreso(egreso_id: int, egreso: EgresoUpdate):
-    return put_egreso(egreso_id, egreso)
+def actualizar_egreso(
+    egreso_id: int,
+    egreso: EgresoUpdate,
+    usuario: dict = Depends(obtener_usuario_autenticado),
+):
+    return put_egreso_controller(egreso_id, egreso, usuario)
 
 
 @router.delete("/{egreso_id}")
-def eliminar_egreso(egreso_id: int):
-    return delete_egreso(egreso_id)
+def eliminar_egreso(
+    egreso_id: int, usuario: dict = Depends(obtener_usuario_autenticado)
+):
+    return delete_egreso_controller(egreso_id, usuario)

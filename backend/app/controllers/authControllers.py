@@ -1,6 +1,6 @@
 # app/controllers/authController.py
 from fastapi import HTTPException
-from services.auth_service import (
+from app.services.auth_service import (
     login_usuario,
     registrar_usuario,
     cambiar_contraseña_usuario,

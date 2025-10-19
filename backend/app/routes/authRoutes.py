@@ -1,11 +1,11 @@
 # app/routes/authRoutes.py
 from fastapi import APIRouter, Form
-from controllers.authControllers import (
+from app.controllers.authControllers import (
     login_controller,
     registrar_controller,
     cambiar_contraseña_controller,
 )
-from schemas.auth import LoginRequest, LoginResponse, RegisterRequest
+from app.schemas.auth import LoginRequest, LoginResponse, RegisterRequest
 
 router = APIRouter(prefix="/auth", tags=["Autenticación"])
 
