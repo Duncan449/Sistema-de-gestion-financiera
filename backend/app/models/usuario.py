@@ -15,4 +15,5 @@ class Usuario(db.Entity):
         "Ingreso"
     )  # Relación inversa para la FK (un usuario puede tener muchos ingresos)
     egresos = Set("Egreso")
+    pasivos = Set("Pasivo")
     activos = Set("Activo")

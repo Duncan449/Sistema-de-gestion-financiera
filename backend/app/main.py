@@ -7,6 +7,7 @@ from fastapi.openapi.utils import get_openapi
 from app.models.usuario import Usuario
 from app.models.ingreso import Ingreso
 from app.models.egreso import Egreso
+from app.models.pasivo import Pasivo
 from app.models.activo import Activo
 
 # Importar e inicializar base de datos
@@ -20,6 +21,7 @@ from app.routes import (
     ingresoRoutes,
     egresoRoutes,
     authRoutes,
+    pasivoRoutes,
     activoRoutes,
 )
 
@@ -55,6 +57,7 @@ app.include_router(authRoutes.router)
 app.include_router(usuarioRoutes.router)
 app.include_router(ingresoRoutes.router)
 app.include_router(egresoRoutes.router)
+app.include_router(pasivoRoutes.router)
 app.include_router(activoRoutes.router)
 
 
