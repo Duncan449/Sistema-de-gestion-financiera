@@ -7,6 +7,7 @@ from fastapi.openapi.utils import get_openapi
 from app.models.usuario import Usuario
 from app.models.ingreso import Ingreso
 from app.models.egreso import Egreso
+from app.models.activo import Activo
 
 # Importar e inicializar base de datos
 from app.database.database import init_database
@@ -14,7 +15,13 @@ from app.database.database import init_database
 init_database()
 
 # Importar rutas
-from app.routes import usuarioRoutes, ingresoRoutes, egresoRoutes, authRoutes
+from app.routes import (
+    usuarioRoutes,
+    ingresoRoutes,
+    egresoRoutes,
+    authRoutes,
+    activoRoutes,
+)
 
 # Crear app
 app = FastAPI(
@@ -32,6 +39,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # Ruta raíz
 @app.get("/")
 def root():
@@ -41,11 +49,13 @@ def root():
         "version": "1.0.0",
     }
 
+
 # Incluir rutas
 app.include_router(authRoutes.router)
 app.include_router(usuarioRoutes.router)
 app.include_router(ingresoRoutes.router)
 app.include_router(egresoRoutes.router)
+app.include_router(activoRoutes.router)
 
 
 # Configurar OpenAPI para mostrar seguridad Bearer
