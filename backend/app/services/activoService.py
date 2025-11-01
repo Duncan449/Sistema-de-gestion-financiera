@@ -10,12 +10,13 @@ from app.schemas.activo import ActivoCreate, ActivoUpdate
 def get_activos_service(usuario_id: int) -> List[dict]:
     """Obtiene todos los activos del usuario autenticado"""
     try:
-        activos_query = Activo.select(
-            lambda a: a.fk_usuarios.id == usuario_id
-        ).order_by(Activo.id)
+
+        # Traer todos y filtrar manualmente
+        todos_activos = list(Activo.select().order_by(Activo.id))
+        activos = [p for p in todos_activos if p.fk_usuarios.id == usuario_id]
 
         resultado = []
-        for activo in activos_query:
+        for activo in activos:
             resultado.append(
                 {
                     "id": activo.id,
