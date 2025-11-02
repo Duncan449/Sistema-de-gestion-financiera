@@ -8,14 +8,16 @@ from app.schemas.ingreso import IngresoCreate, IngresoUpdate
 
 # GET INGRESOS - Devuelve la lista de ingresos
 @db_session
-def get_ingresos_service() -> List[dict]:
-    """Obtiene todos los ingresos"""
+def get_ingresos_service(usuario_id: int) -> List[dict]:
+    """Obtiene todos los ingresos del usuario autenticado"""
     try:
-        # Usar query más directa
-        ingresos_query = Ingreso.select().order_by(Ingreso.id)
+
+        # Traer todos y filtrar manualmente
+        todos_ingresos = list(Ingreso.select().order_by(Ingreso.id))
+        ingresos = [p for p in todos_ingresos if p.fk_usuarios.id == usuario_id]
 
         resultado = []
-        for ingreso in ingresos_query:
+        for ingreso in ingresos:
             resultado.append(
                 {
                     "id": ingreso.id,
@@ -61,7 +63,7 @@ def get_ingreso_service(ingreso_id: int) -> dict:
 
 # POST INGRESO - Permite crear un ingreso
 @db_session
-def post_ingreso_service(ingreso_data: IngresoCreate):
+def post_ingreso_service(ingreso_data: IngresoCreate, usuario_id: int):
     """Crea un nuevo ingreso en la base de datos"""
     try:
         # Validación adicional del monto
@@ -69,7 +71,7 @@ def post_ingreso_service(ingreso_data: IngresoCreate):
             raise ValueError("El monto debe ser mayor a 0")
 
         # Obtener el usuario
-        usuario = Usuario.get(id=ingreso_data.fk_usuarios)
+        usuario = Usuario.get(id=usuario_id)  # Toma el usuario del token
         if not usuario:
             raise ValueError("Usuario no encontrado")
 
@@ -100,13 +102,19 @@ def post_ingreso_service(ingreso_data: IngresoCreate):
 
 # PUT INGRESO - Permite modificar un ingreso
 @db_session
-def put_ingreso_service(ingreso_id: int, ingreso_data: IngresoUpdate) -> dict:
+def put_ingreso_service(
+    ingreso_id: int, ingreso_data: IngresoUpdate, usuario_id: int
+) -> dict:
     """Actualiza un ingreso"""
     try:
         ingreso = Ingreso.get(id=ingreso_id)
 
         if not ingreso:
             raise ValueError("Ingreso no encontrado")
+
+        # Verificar que el ingreso pertenece al usuario autenticado
+        if ingreso.fk_usuarios.id != usuario_id:
+            raise ValueError("No tienes permiso para modificar este ingreso")
 
         # Obtener campos a actualizar
         datos = ingreso_data.dict(exclude_unset=True)
@@ -141,7 +149,7 @@ def put_ingreso_service(ingreso_id: int, ingreso_data: IngresoUpdate) -> dict:
 
 # DELETE INGRESO - Permite eliminar un ingreso por ID
 @db_session
-def delete_ingreso_service(ingreso_id: int):
+def delete_ingreso_service(ingreso_id: int, usuario_id: int):
     """
     Elimina un ingreso de la base de datos
     """
@@ -150,6 +158,10 @@ def delete_ingreso_service(ingreso_id: int):
 
         if not ingreso:
             raise ValueError("Ingreso no encontrado")
+
+        # Verificar que el ingreso pertenece al usuario autenticado
+        if ingreso.fk_usuarios.id != usuario_id:
+            raise ValueError("No tienes permiso para eliminar este ingreso")
 
         ingreso.delete()
 

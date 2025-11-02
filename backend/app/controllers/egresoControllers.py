@@ -13,7 +13,7 @@ from app.schemas.egreso import EgresoCreate, EgresoUpdate
 def get_egresos_controller(usuario_autenticado: dict) -> list:
     """Controller para GET /egresos"""
     try:
-        return get_egresos_service()
+        return get_egresos_service(usuario_autenticado["usuario_id"])
     except ValueError as e:
         raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
@@ -40,7 +40,7 @@ def post_egreso_controller(
 ) -> dict:
     """Controller para POST /egresos"""
     try:
-        return post_egreso_service(egreso_data)
+        return post_egreso_service(egreso_data, usuario_autenticado["usuario_id"])
     except ValueError as e:
         error_msg = str(e)
         if "usuario" in error_msg.lower():
@@ -56,7 +56,9 @@ def put_egreso_controller(
 ) -> dict:
     """Controller para PUT /egresos/{egreso_id}"""
     try:
-        return put_egreso_service(egreso_id, egreso_data)
+        return put_egreso_service(
+            egreso_id, egreso_data, usuario_autenticado["usuario_id"]
+        )
     except ValueError as e:
         error_msg = str(e)
         if "no encontrado" in error_msg.lower():
@@ -70,7 +72,7 @@ def put_egreso_controller(
 def delete_egreso_controller(egreso_id: int, usuario_autenticado: dict) -> dict:
     """Controller para DELETE /egresos/{egreso_id}"""
     try:
-        return delete_egreso_service(egreso_id)
+        return delete_egreso_service(egreso_id, usuario_autenticado["usuario_id"])
     except ValueError as e:
         error_msg = str(e)
         if "no encontrado" in error_msg.lower():

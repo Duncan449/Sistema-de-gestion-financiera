@@ -8,14 +8,16 @@ from app.schemas.egreso import EgresoCreate, EgresoUpdate
 
 # GET EGRESOS - Devuelve la lista de egresos
 @db_session
-def get_egresos_service() -> List[dict]:
-    """Obtiene todos los egresos"""
+def get_egresos_service(usuario_id: int) -> List[dict]:
+    """Obtiene todos los egresos del usuario autenticado"""
     try:
-        # Usar query más directa
-        egresos_query = Egreso.select().order_by(Egreso.id)
+
+        # Traer todos y filtrar manualmente
+        todos_egresos = list(Egreso.select().order_by(Egreso.id))
+        egresos = [p for p in todos_egresos if p.fk_usuarios.id == usuario_id]
 
         resultado = []
-        for egreso in egresos_query:
+        for egreso in egresos:
             resultado.append(
                 {
                     "id": egreso.id,
@@ -61,7 +63,7 @@ def get_egreso_service(egreso_id: int) -> dict:
 
 # POST EGRESO - Permite crear un egreso
 @db_session
-def post_egreso_service(egreso_data: EgresoCreate):
+def post_egreso_service(egreso_data: EgresoCreate, usuario_id: int):
     """Crea un nuevo egreso en la base de datos"""
     try:
         # Validación adicional del monto
@@ -69,7 +71,7 @@ def post_egreso_service(egreso_data: EgresoCreate):
             raise ValueError("El monto debe ser mayor a 0")
 
         # Obtener el usuario
-        usuario = Usuario.get(id=egreso_data.fk_usuarios)
+        usuario = Usuario.get(id=usuario_id)  # Toma el usuario del token
         if not usuario:
             raise ValueError("Usuario no encontrado")
 
@@ -100,13 +102,17 @@ def post_egreso_service(egreso_data: EgresoCreate):
 
 # PUT EGRESO - Permite modificar un egreso
 @db_session
-def put_egreso_service(egreso_id: int, data: EgresoUpdate) -> dict:
+def put_egreso_service(egreso_id: int, data: EgresoUpdate, usuario_id: int) -> dict:
     """Actualiza un egreso"""
     try:
         egreso = Egreso.get(id=egreso_id)
 
         if not egreso:
             raise ValueError("Egreso no encontrado")
+
+        # validar que el egreso pertenezca al usuario autenticado
+        if egreso.fk_usuarios.id != usuario_id:
+            raise ValueError("No tienes permiso para modificar este egreso")
 
         # Obtener campos a actualizar
         datos = data.dict(exclude_unset=True)
@@ -141,7 +147,7 @@ def put_egreso_service(egreso_id: int, data: EgresoUpdate) -> dict:
 
 # DELETE EGRESO - Permite eliminar un egreso por ID
 @db_session
-def delete_egreso_service(egreso_id: int):
+def delete_egreso_service(egreso_id: int, usuario_id: int):
     """
     Elimina un egreso de la base de datos
     """
@@ -150,6 +156,10 @@ def delete_egreso_service(egreso_id: int):
 
         if not egreso:
             raise ValueError("Egreso no encontrado")
+
+        # validar que el egreso pertenezca al usuario autenticado
+        if egreso.fk_usuarios.id != usuario_id:
+            raise ValueError("No tienes permiso para eliminar este egreso")
 
         egreso.delete()
 

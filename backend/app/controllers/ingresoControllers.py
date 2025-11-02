@@ -13,7 +13,7 @@ from app.schemas.ingreso import IngresoCreate, IngresoUpdate
 def get_ingresos_controller(usuario_autenticado: dict) -> list:
     """Controller para GET /ingresos"""
     try:
-        return get_ingresos_service()
+        return get_ingresos_service(usuario_autenticado["usuario_id"])
     except ValueError as e:
         raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
@@ -43,7 +43,7 @@ def post_ingreso_controller(
     Recibe el schema IngresoCreate validado
     """
     try:
-        return post_ingreso_service(ingreso_data)
+        return post_ingreso_service(ingreso_data, usuario_autenticado["usuario_id"])
     except ValueError as e:
         error_msg = str(e)
         if "usuario" in error_msg.lower():
@@ -62,7 +62,9 @@ def put_ingreso_controller(
     Recibe el schema IngresoUpdate validado
     """
     try:
-        return put_ingreso_service(ingreso_id, ingreso_data)
+        return put_ingreso_service(
+            ingreso_id, ingreso_data, usuario_autenticado["usuario_id"]
+        )
     except ValueError as e:
         error_msg = str(e)
         if "no encontrado" in error_msg.lower():
@@ -76,7 +78,7 @@ def put_ingreso_controller(
 def delete_ingreso_controller(ingreso_id: int, usuario_autenticado: dict) -> dict:
     """Controller para DELETE /ingresos/{ingreso_id}"""
     try:
-        return delete_ingreso_service(ingreso_id)
+        return delete_ingreso_service(ingreso_id, usuario_autenticado["usuario_id"])
     except ValueError as e:
         error_msg = str(e)
         if "no encontrado" in error_msg.lower():

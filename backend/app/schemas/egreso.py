@@ -8,7 +8,7 @@ class EgresoCreate(BaseModel):
     monto: float
     categoria: str
     fecha: date
-    fk_usuarios: int
+    # fk_usuarios: int  # Se elimina este campo ya que se tomará del token
 
 
 class EgresoUpdate(BaseModel):

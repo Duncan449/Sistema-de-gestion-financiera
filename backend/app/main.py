@@ -23,6 +23,7 @@ from app.routes import (
     authRoutes,
     pasivoRoutes,
     activoRoutes,
+    motorInferenciaRoutes,
 )
 
 # Crear app
@@ -59,6 +60,7 @@ app.include_router(ingresoRoutes.router)
 app.include_router(egresoRoutes.router)
 app.include_router(pasivoRoutes.router)
 app.include_router(activoRoutes.router)
+app.include_router(motorInferenciaRoutes.router)
 
 
 # Configurar OpenAPI para mostrar seguridad Bearer
