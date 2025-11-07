@@ -269,10 +269,11 @@ const Activos = () => {
                   style={styles.select}
                 >
                   <option value="">Seleccione tipo</option>
-                  <option value="inmueble">Inmueble</option>
-                  <option value="vehiculo">Vehículo</option>
-                  <option value="inversion">Inversión</option>
-                  <option value="otro">Otro</option>
+                  <option value="Inmueble">Inmueble</option>
+                  <option value="Vehiculo">Vehículo</option>
+                  <option value="Inversión">Inversión</option>
+                  <option value="Negocio">Negocio</option>
+                  <option value="Otro">Otro</option>
                 </select>
               </div>
 
