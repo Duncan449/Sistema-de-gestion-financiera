@@ -5,11 +5,11 @@ import {
   Home,
   TrendingUp,
   TrendingDown,
-  Building2,
   CreditCard,
   LogOut,
   User,
   DollarSign,
+  Landmark,
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -26,7 +26,7 @@ const Sidebar = () => {
     { icon: Home, label: "Inicio", path: "/dashboard" },
     { icon: TrendingUp, label: "Ingresos", path: "/ingresos" },
     { icon: TrendingDown, label: "Egresos", path: "/egresos" },
-    { icon: Building2, label: "Activos", path: "/activos" },
+    { icon: Landmark, label: "Activos", path: "/activos" },
     { icon: CreditCard, label: "Pasivos", path: "/pasivos" },
   ];
 
@@ -120,7 +120,7 @@ const styles = {
     flexShrink: 0,
   },
   logoText: {
-    fontSize: "14px",
+    fontSize: "15px",
     fontWeight: "600",
     color: "#1f2937",
     lineHeight: "1.3",
@@ -139,7 +139,7 @@ const styles = {
     color: "#6b7280",
     textDecoration: "none",
     marginBottom: "4px",
-    fontSize: "14px",
+    fontSize: "15px",
     fontWeight: "500",
     transition: "all 0.2s",
     cursor: "pointer",
@@ -180,7 +180,7 @@ const styles = {
     minWidth: 0,
   },
   userName: {
-    fontSize: "13px",
+    fontSize: "14px",
     fontWeight: "600",
     color: "#1f2937",
     margin: 0,
@@ -189,7 +189,7 @@ const styles = {
     whiteSpace: "nowrap",
   },
   userEmail: {
-    fontSize: "11px",
+    fontSize: "12px",
     color: "#9ca3af",
     margin: 0,
     overflow: "hidden",
