@@ -11,7 +11,9 @@ import {
   CreditCard,
   Shield,
   TrendingUp,
+  AlertTriangle,
   AlertCircle,
+  AlertOctagon,
   Lightbulb,
   CheckCircle,
   XCircle,
@@ -224,6 +226,20 @@ const Dashboard = () => {
     );
   };
 
+  const renderDescripcion = (texto) => {
+    if (typeof texto !== "string") return texto;
+
+    // Expresión regular que elimina cualquier emoji o símbolo no textual
+    const textoLimpio = texto
+      .replace(
+        /([\u2700-\u27BF]|[\uE000-\uF8FF]|[\uD83C-\uDBFF][\uDC00-\uDFFF]|\uFE0F|\u200D)/g,
+        ""
+      )
+      .trim();
+
+    return <p style={styles.reglaDescripcion}>{textoLimpio}</p>;
+  };
+
   return (
     <div style={styles.layout}>
       <Sidebar />
@@ -272,7 +288,7 @@ const Dashboard = () => {
                       ? "#10b981"
                       : "#ef4444"
                   }
-                  destacado={true}
+                  destacado={false}
                 />
               </div>
 
@@ -426,6 +442,7 @@ const Dashboard = () => {
               </div>
 
               {/* NUEVA SECCIÓN: Evaluación Detallada por Regla */}
+
               <div style={styles.card}>
                 <h3
                   style={{
@@ -478,9 +495,7 @@ const Dashboard = () => {
                               <h4 style={styles.reglaTitulo}>
                                 {info?.titulo || key}
                               </h4>
-                              <p style={styles.reglaDescripcion}>
-                                {info?.descripcion}
-                              </p>
+                              {renderDescripcion(info?.descripcion)}
                             </div>
                           </div>
                           <div style={styles.reglaHeaderRight}>
@@ -645,7 +660,6 @@ const CardResumen = ({ titulo, valor, Icon, color, destacado }) => (
     <p style={{ ...styles.cardValor, color }}>
       ${Math.abs(valor).toLocaleString("es-CL")}
     </p>
-    <p style={styles.cardFooter}>Este mes</p>
   </div>
 );
 
@@ -698,9 +712,38 @@ const RecomendacionCard = ({ nombre, regla }) => {
   };
 
   const getIcon = () => {
-    if (regla.severidad === "danger") return "🚨";
-    if (regla.severidad === "warning") return "⚠️";
-    return "💡";
+    if (regla.severidad === "danger")
+      return (
+        <AlertOctagon
+          style={{
+            width: 20,
+            height: 20,
+            color: "#dc2626", // rojo
+          }}
+        />
+      );
+
+    if (regla.severidad === "warning")
+      return (
+        <AlertTriangle
+          style={{
+            width: 20,
+            height: 20,
+            color: "#f59e0b", // amarillo
+          }}
+        />
+      );
+
+    return (
+      <Lightbulb
+        style={{
+          width: 20,
+          height: 20,
+          color: "#3b82f6", // azul
+        }}
+        strokeWidth={2} // más marcado
+      />
+    );
   };
 
   return (
@@ -803,13 +846,13 @@ const styles = {
     marginBottom: "12px",
   },
   cardLabel: {
-    fontSize: "13px",
+    fontSize: "14px",
     fontWeight: "500",
     color: "#6b7280",
     margin: 0,
   },
   cardTitle: {
-    fontSize: "16px",
+    fontSize: "17px",
     fontWeight: "600",
     color: "#111827",
     marginBottom: "20px",
@@ -820,7 +863,7 @@ const styles = {
     marginBottom: "8px",
   },
   cardFooter: {
-    fontSize: "12px",
+    fontSize: "15px",
     color: "#9ca3af",
     margin: 0,
   },
@@ -863,7 +906,7 @@ const styles = {
     marginBottom: "4px",
   },
   semaforoDesc: {
-    fontSize: "14px",
+    fontSize: "15px",
     color: "#6b7280",
     marginBottom: "16px",
   },
@@ -884,7 +927,7 @@ const styles = {
     transition: "width 0.5s ease",
   },
   scoreText: {
-    fontSize: "13px",
+    fontSize: "14px",
     color: "#6b7280",
     margin: 0,
   },
@@ -906,24 +949,29 @@ const styles = {
     marginBottom: "8px",
   },
   recomendacionIcon: {
-    fontSize: "20px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "20px",
+    height: "20px",
   },
+
   recomendacionTitulo: {
-    fontSize: "14px",
+    fontSize: "15px",
     fontWeight: "600",
     color: "#111827",
     margin: 0,
     textTransform: "capitalize",
   },
   recomendacionMensaje: {
-    fontSize: "13px",
+    fontSize: "15px",
     color: "#6b7280",
     lineHeight: "1.5",
     margin: 0,
     paddingLeft: "32px",
   },
   evaluacionSubtitle: {
-    fontSize: "13px",
+    fontSize: "15px",
     color: "#6b7280",
     marginBottom: "24px",
   },
@@ -962,13 +1010,13 @@ const styles = {
     flexShrink: 0,
   },
   reglaTitulo: {
-    fontSize: "15px",
+    fontSize: "16px",
     fontWeight: "600",
     color: "#111827",
     margin: "0 0 4px 0",
   },
   reglaDescripcion: {
-    fontSize: "12px",
+    fontSize: "14.2px",
     color: "#6b7280",
     margin: 0,
   },
@@ -988,7 +1036,7 @@ const styles = {
     marginTop: "16px",
   },
   reglaMensajeText: {
-    fontSize: "14px",
+    fontSize: "14.2px",
     color: "#374151",
     margin: 0,
     lineHeight: "1.5",
@@ -1000,13 +1048,13 @@ const styles = {
     borderRadius: "8px",
   },
   detallesTitulo: {
-    fontSize: "13px",
+    fontSize: "14.5px",
     fontWeight: "600",
     color: "#374151",
     marginBottom: "12px",
   },
   detallesTexto: {
-    fontSize: "12px",
+    fontSize: "14.5px",
     color: "#6b7280",
     margin: "8px 0",
   },

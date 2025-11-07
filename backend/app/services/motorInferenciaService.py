@@ -6,6 +6,22 @@ from app.models.egreso import Egreso
 from app.models.activo import Activo
 from app.models.pasivo import Pasivo
 from datetime import datetime, timedelta
+import re
+
+def limpiar_texto(texto: str) -> str:
+    """Elimina emojis y símbolos Unicode del texto."""
+    if not isinstance(texto, str):
+        return texto
+    emoji_pattern = re.compile("["
+        u"\U0001F600-\U0001F64F"  # emoticonos
+        u"\U0001F300-\U0001F5FF"  # símbolos y pictogramas
+        u"\U0001F680-\U0001F6FF"  # transporte y mapas
+        u"\U0001F1E0-\U0001F1FF"  # banderas
+        u"\u2600-\u26FF"          # misceláneos
+        u"\u2700-\u27BF"          # dingbats
+        "]+", flags=re.UNICODE)
+    return emoji_pattern.sub('', texto).strip()
+
 
 # ============================================================
 # FUNCIONES AUXILIARES (con filtrado manual para evitar errores)
@@ -140,7 +156,7 @@ def regla_50_30_20(
     )
 
     # Evaluación del tipo de desviación
-    desviaciones = []
+    desviaciones = ["Observaciones"] 
     if pct_necesidades > rangos["necesidades"][1]:
         desviaciones.append("gastas demasiado en necesidades")
     elif pct_necesidades < rangos["necesidades"][0]:
@@ -164,7 +180,7 @@ def regla_50_30_20(
         severidad = "success"
     else:
         mensaje = "⚠️ " + ", ".join(desviaciones)
-        severidad = "warning"
+        severidad = "danger"
 
     return {
         "cumple": cumple,
@@ -387,6 +403,11 @@ def evaluar_salud_financiera(usuario_id: int, dias: int = 30) -> Dict:
 
     reglas_cumplidas = sum(1 for r in reglas.values() if r.get("cumple", False))
     total = len(reglas)
+
+# 🔹 Limpiar los emojis de los mensajes antes de devolverlos
+    for r in reglas.values():
+        if "mensaje" in r:
+            r["mensaje"] = limpiar_texto(r["mensaje"])
 
     return {
         "usuario_id": usuario_id,

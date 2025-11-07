@@ -401,7 +401,7 @@ const styles = {
     marginBottom: "4px",
   },
   subtitle: {
-    fontSize: "14px",
+    fontSize: "15px",
     color: "#6b7280",
   },
   addBtn: {
@@ -434,7 +434,7 @@ const styles = {
     flex: 1,
   },
   statLabel: {
-    fontSize: "13px",
+    fontSize: "15px",
     color: "#6b7280",
     marginBottom: "8px",
   },
@@ -495,7 +495,7 @@ const styles = {
     background: "#f9fafb",
     padding: "16px",
     textAlign: "left",
-    fontSize: "13px",
+    fontSize: "15px",
     fontWeight: "600",
     color: "#6b7280",
     borderBottom: "1px solid #e5e7eb",
@@ -511,7 +511,7 @@ const styles = {
   },
   td: {
     padding: "16px",
-    fontSize: "14px",
+    fontSize: "15px",
     color: "#374151",
     borderBottom: "1px solid #f3f4f6",
   },
@@ -520,7 +520,7 @@ const styles = {
     color: "#ef4444",
     padding: "4px 12px",
     borderRadius: "16px",
-    fontSize: "12px",
+    fontSize: "14px",
     fontWeight: "500",
     textTransform: "capitalize",
   },
