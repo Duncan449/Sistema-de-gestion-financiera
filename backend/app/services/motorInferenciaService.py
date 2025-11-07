@@ -120,11 +120,51 @@ def regla_50_30_20(
             "severidad": "warning",
         }
 
+    # Cálculo de porcentajes
     pct_necesidades = (egresos_necesidades / ingresos) * 100
     pct_deseos = (egresos_deseos / ingresos) * 100
     pct_ahorros = (egresos_ahorros / ingresos) * 100
 
-    cumple = pct_necesidades <= 50 and pct_deseos <= 30 and pct_ahorros >= 20
+    # Rangos recomendados (flexibles)
+    rangos = {
+        "necesidades": (45, 55),
+        "deseos": (25, 35),
+        "ahorros": (15, 25),
+    }
+
+    # Verificación de cumplimiento
+    cumple = (
+        rangos["necesidades"][0] <= pct_necesidades <= rangos["necesidades"][1]
+        and rangos["deseos"][0] <= pct_deseos <= rangos["deseos"][1]
+        and rangos["ahorros"][0] <= pct_ahorros <= rangos["ahorros"][1]
+    )
+
+    # Evaluación del tipo de desviación
+    desviaciones = []
+    if pct_necesidades > rangos["necesidades"][1]:
+        desviaciones.append("gastas demasiado en necesidades")
+    elif pct_necesidades < rangos["necesidades"][0]:
+        desviaciones.append("destinas muy poco a necesidades")
+
+    if pct_deseos > rangos["deseos"][1]:
+        desviaciones.append("gastas demasiado en deseos")
+    elif pct_deseos < rangos["deseos"][0]:
+        desviaciones.append("dedicas muy poco a ocio")
+
+    if pct_ahorros > rangos["ahorros"][1]:
+        desviaciones.append(
+            "ahorras más de lo recomendado (no es malo, pero rompe el equilibrio)"
+        )
+    elif pct_ahorros < rangos["ahorros"][0]:
+        desviaciones.append("ahorras menos de lo recomendado")
+
+    # Construcción del mensaje
+    if cumple:
+        mensaje = "✅ Cumples con la regla 50/30/20"
+        severidad = "success"
+    else:
+        mensaje = "⚠️ " + ", ".join(desviaciones)
+        severidad = "warning"
 
     return {
         "cumple": cumple,
@@ -133,12 +173,8 @@ def regla_50_30_20(
             "deseos": round(pct_deseos, 2),
             "ahorros": round(pct_ahorros, 2),
         },
-        "mensaje": (
-            "✅ Cumples con la regla 50/30/20"
-            if cumple
-            else f"⚠️ No cumples: necesidades {pct_necesidades:.1f}%, deseos {pct_deseos:.1f}%, ahorros {pct_ahorros:.1f}%"
-        ),
-        "severidad": "success" if cumple else "warning",
+        "mensaje": mensaje,
+        "severidad": severidad,
     }
 
 
@@ -168,7 +204,7 @@ def regla_gasta_mas_que_gana(ingresos, egresos) -> Dict:
         return {
             "cumple": False,
             "mensaje": "No hay ingresos registrados",
-            "severidad": "danger",
+            "severidad": "warning",
         }
 
     cumple = egresos <= ingresos
@@ -186,6 +222,14 @@ def regla_gasta_mas_que_gana(ingresos, egresos) -> Dict:
 
 
 def regla_fondo_emergencia(ingresos, ahorro_total) -> Dict:
+    if ingresos == 0 or ahorro_total == 0:  # Validación para evitar datos vacíos
+        return {
+            "cumple": False,
+            "nivel": "sin datos",
+            "mensaje": "No hay ingresos ni ahorros registrados para evaluar el fondo de emergencia",
+            "severidad": "warning",
+        }
+
     minimo, ideal = ingresos * 3, ingresos * 6
     if ahorro_total >= ideal:
         nivel = "excelente"
@@ -229,11 +273,19 @@ def regla_inversion_educacion(gastos_educacion, ingresos) -> Dict:
             if cumple
             else f"⚠️ Inviertes {pct:.1f}%, recomendado 5%"
         ),
-        "severidad": "success" if cumple else "warning",
+        "severidad": "success" if cumple else "danger",
     }
 
 
 def regla_lujos_vs_educacion(gastos_lujos, gastos_educacion, valor_activos) -> Dict:
+    # Si no hay datos, no se puede evaluar correctamente
+    if gastos_lujos == 0 and gastos_educacion == 0 and valor_activos == 0:
+        return {
+            "cumple": False,
+            "mensaje": "No hay gastos ni activos registrados para evaluar prioridades financieras",
+            "severidad": "warning",
+        }
+
     cumple = gastos_lujos <= (gastos_educacion + valor_activos)
     return {
         "cumple": cumple,
@@ -242,11 +294,18 @@ def regla_lujos_vs_educacion(gastos_lujos, gastos_educacion, valor_activos) -> D
             if cumple
             else "⚠️ Gastas más en lujos que en educación o activos"
         ),
-        "severidad": "success" if cumple else "warning",
+        "severidad": "success" if cumple else "danger",
     }
 
 
 def regla_reserva_imprevistos(ingresos, ahorro_liquido) -> Dict:
+    if ingresos == 0 and ahorro_liquido == 0:
+        return {
+            "cumple": False,
+            "mensaje": "No hay ingresos ni ahorros registrados para evaluar la reserva de imprevistos",
+            "severidad": "warning",
+        }
+
     reserva_min = ingresos
     cumple = ahorro_liquido >= reserva_min
     return {
@@ -256,7 +315,7 @@ def regla_reserva_imprevistos(ingresos, ahorro_liquido) -> Dict:
             if cumple
             else f"⚠️ Te faltan ${reserva_min - ahorro_liquido:.2f} para 1 mes de reserva"
         ),
-        "severidad": "success" if cumple else "warning",
+        "severidad": "success" if cumple else "danger",
     }
 
 
@@ -289,7 +348,11 @@ def evaluar_salud_financiera(usuario_id: int, dias: int = 30) -> Dict:
             for c in ["entretenimiento", "restaurantes", "viajes", "lujos"]
         ]
     )
-    gastos_ahorros = obtener_egresos_por_categoria(usuario_id, "ahorro", dias)
+    gastos_ahorros = (
+        obtener_egresos_por_categoria(usuario_id, "ahorro", dias)
+        + obtener_egresos_por_categoria(usuario_id, "inversión", dias)
+        + obtener_egresos_por_categoria(usuario_id, "educación", dias)
+    )
     gastos_educacion = obtener_egresos_por_categoria(usuario_id, "educación", dias)
     gastos_lujos = obtener_egresos_por_categoria(usuario_id, "lujos", dias)
     ahorro_liquido = obtener_egresos_por_categoria(usuario_id, "ahorro", dias)
@@ -309,9 +372,7 @@ def evaluar_salud_financiera(usuario_id: int, dias: int = 30) -> Dict:
         "gasta_mas_que_gana": regla_gasta_mas_que_gana(
             ingresos_totales, egresos_totales
         ),
-        "fondo_emergencia": regla_fondo_emergencia(
-            ingresos_totales, gastos_ahorros * 6
-        ),
+        "fondo_emergencia": regla_fondo_emergencia(ingresos_totales, gastos_ahorros),
         "sin_inversiones": regla_sin_inversiones(valor_activos, flujo_activos),
         "inversion_educacion": regla_inversion_educacion(
             gastos_educacion, ingresos_totales

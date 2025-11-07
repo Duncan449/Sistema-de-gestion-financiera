@@ -13,19 +13,24 @@ import {
   TrendingUp,
   AlertCircle,
   Lightbulb,
+  CheckCircle,
+  XCircle,
+  Info,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import {
   PieChart,
   Pie,
   Cell,
   ResponsiveContainer,
-  Legend,
   Tooltip,
   BarChart,
   Bar,
   XAxis,
   YAxis,
   CartesianGrid,
+  Legend,
 } from "recharts";
 
 const Dashboard = () => {
@@ -33,6 +38,7 @@ const Dashboard = () => {
   const [analisis, setAnalisis] = useState(null);
   const [loading, setLoading] = useState(true);
   const [dias, setDias] = useState(30);
+  const [expandedRules, setExpandedRules] = useState({});
 
   useEffect(() => {
     cargarAnalisis();
@@ -48,6 +54,13 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleRule = (ruleKey) => {
+    setExpandedRules((prev) => ({
+      ...prev,
+      [ruleKey]: !prev[ruleKey],
+    }));
   };
 
   if (loading) {
@@ -72,21 +85,24 @@ const Dashboard = () => {
 
     if (porcentaje >= 75) {
       return {
-        status: "Tu salud financiera es buena",
+        status: "Excelente",
+        mensaje: "Tu salud financiera es buena",
         color: "#10b981",
-        icon: AlertCircle,
+        icon: CheckCircle,
       };
     } else if (porcentaje >= 50) {
       return {
-        status: "Tu salud financiera necesita atención",
+        status: "Necesita Atención",
+        mensaje: "Tu salud financiera necesita mejoras",
         color: "#f59e0b",
         icon: AlertCircle,
       };
     } else {
       return {
-        status: "Tu situación financiera requiere acción inmediata",
+        status: "Crítico",
+        mensaje: "Tu situación financiera requiere acción inmediata",
         color: "#ef4444",
-        icon: AlertCircle,
+        icon: XCircle,
       };
     }
   };
@@ -111,6 +127,102 @@ const Dashboard = () => {
     { mes: "May", ingresos: 3600000, gastos: 2750000 },
     { mes: "Jun", ingresos: 3500000, gastos: 2800000 },
   ];
+
+  // Mapeo de nombres de reglas a títulos legibles
+  const nombreReglas = {
+    regla_50_30_20: {
+      titulo: "Regla 50/30/20",
+      descripcion: "50% necesidades, 30% deseos, 20% ahorro/inversión",
+      icon: PiggyBank,
+    },
+    limite_endeudamiento: {
+      titulo: "Límite de Endeudamiento",
+      descripcion: "Las deudas no deben superar el 40% de ingresos",
+      icon: CreditCard,
+    },
+    gasta_mas_que_gana: {
+      titulo: "Balance Financiero",
+      descripcion: "Tus gastos no deben superar tus ingresos",
+      icon: TrendingUp,
+    },
+    fondo_emergencia: {
+      titulo: "Fondo de Emergencia",
+      descripcion: "Ahorro equivalente a 3-6 meses de gastos",
+      icon: Shield,
+    },
+    sin_inversiones: {
+      titulo: "Activos e Inversiones",
+      descripcion: "Poseer activos que generen valor",
+      icon: DollarSign,
+    },
+    inversion_educacion: {
+      titulo: "Inversión en Educación",
+      descripcion: "Al menos 5% de ingresos en desarrollo personal",
+      icon: Lightbulb,
+    },
+    lujos_vs_educacion: {
+      titulo: "Prioridades Financieras",
+      descripcion: "Priorizar educación/activos sobre lujos",
+      icon: Info,
+    },
+    reserva_imprevistos: {
+      titulo: "Reserva para Imprevistos",
+      descripcion: "Al menos 1 mes de ingresos en ahorro líquido",
+      icon: AlertCircle,
+    },
+  };
+
+  const getColorBySeverity = (severity) => {
+    switch (severity) {
+      case "success":
+        return "#10b981";
+      case "warning":
+        return "#f59e0b";
+      case "danger":
+        return "#ef4444";
+      default:
+        return "#6b7280";
+    }
+  };
+
+  const getIconBySeverity = (severity) => {
+    switch (severity) {
+      case "success":
+        return CheckCircle;
+      case "warning":
+        return AlertCircle;
+      case "danger":
+        return XCircle;
+      default:
+        return Info;
+    }
+  };
+
+  const getRecomendacion = (ruleKey) => {
+    const recomendaciones = {
+      regla_50_30_20:
+        "Intenta ajustar tus gastos para cumplir con la regla 50/30/20. Reduce gastos innecesarios y aumenta tu ahorro.",
+      limite_endeudamiento:
+        "Considera consolidar deudas o aumentar pagos mensuales para reducir el nivel de endeudamiento.",
+      gasta_mas_que_gana:
+        "Urgente: Revisa tus gastos y elimina lo no esencial. Busca formas de aumentar tus ingresos.",
+      fondo_emergencia:
+        "Destina un porcentaje fijo de tus ingresos mensualmente hasta alcanzar 3-6 meses de gastos.",
+      sin_inversiones:
+        "Comienza a invertir aunque sea con montos pequeños. Considera fondos mutuos o ETFs para principiantes.",
+      inversion_educacion:
+        "Invierte en cursos, libros o certificaciones que mejoren tus habilidades profesionales.",
+      lujos_vs_educacion:
+        "Revalúa tus prioridades de gasto. Los activos y la educación generan valor a largo plazo.",
+      reserva_imprevistos:
+        "Crea una cuenta de ahorros separada específicamente para emergencias menores.",
+    };
+
+    return (
+      recomendaciones[ruleKey] ||
+      "Consulta con un asesor financiero para mejorar esta área."
+    );
+  };
 
   return (
     <div style={styles.layout}>
@@ -248,9 +360,9 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              {/* Semáforo Financiero */}
+              {/* Semáforo Financiero Mejorado */}
               <div style={styles.card}>
-                <h3 style={styles.cardTitle}>Semáforo Financiero</h3>
+                <h3 style={styles.cardTitle}>Evaluación General</h3>
                 <div style={styles.semaforoContent}>
                   <div
                     style={{
@@ -258,7 +370,7 @@ const Dashboard = () => {
                       background: `${semaforo.color}15`,
                     }}
                   >
-                    <semaforo.icon size={32} color={semaforo.color} />
+                    <semaforo.icon size={48} color={semaforo.color} />
                   </div>
                   <div style={styles.semaforoText}>
                     <h4
@@ -269,16 +381,28 @@ const Dashboard = () => {
                     >
                       {semaforo.status}
                     </h4>
-                    <p style={styles.semaforoDesc}>
-                      Puntuación: {analisis.puntuacion_general.porcentaje}% (
-                      {analisis.puntuacion_general.cumplidas} de{" "}
-                      {analisis.puntuacion_general.total} reglas cumplidas)
-                    </p>
+                    <p style={styles.semaforoDesc}>{semaforo.mensaje}</p>
+                    <div style={styles.scoreBar}>
+                      <div style={styles.scoreBarBg}>
+                        <div
+                          style={{
+                            ...styles.scoreBarFill,
+                            width: `${analisis.puntuacion_general.porcentaje}%`,
+                            background: semaforo.color,
+                          }}
+                        ></div>
+                      </div>
+                      <p style={styles.scoreText}>
+                        {analisis.puntuacion_general.cumplidas} de{" "}
+                        {analisis.puntuacion_general.total} reglas cumplidas (
+                        {analisis.puntuacion_general.porcentaje}%)
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Recomendaciones */}
+              {/* Recomendaciones Rápidas (las que ya tenías) */}
               <div style={styles.card}>
                 <h3
                   style={{
@@ -289,7 +413,7 @@ const Dashboard = () => {
                   }}
                 >
                   <Lightbulb size={20} color="#667eea" />
-                  Recomendaciones Personalizadas del Sistema Experto
+                  Recomendaciones Prioritarias
                 </h3>
                 <div style={styles.recomendaciones}>
                   {Object.entries(analisis.reglas)
@@ -298,6 +422,204 @@ const Dashboard = () => {
                     .map(([key, regla]) => (
                       <RecomendacionCard key={key} nombre={key} regla={regla} />
                     ))}
+                </div>
+              </div>
+
+              {/* NUEVA SECCIÓN: Evaluación Detallada por Regla */}
+              <div style={styles.card}>
+                <h3
+                  style={{
+                    ...styles.cardTitle,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <AlertCircle size={20} color="#667eea" />
+                  Evaluación Detallada de Salud Financiera
+                </h3>
+                <p style={styles.evaluacionSubtitle}>
+                  Análisis completo basado en{" "}
+                  {analisis.puntuacion_general.total} reglas del sistema
+                  experto. Haz clic en cada regla para ver más detalles.
+                </p>
+
+                <div style={styles.reglasGrid}>
+                  {Object.entries(analisis.reglas).map(([key, regla]) => {
+                    const info = nombreReglas[key];
+                    const Icon = info?.icon || Info;
+                    const StatusIcon = getIconBySeverity(regla.severidad);
+                    const color = getColorBySeverity(regla.severidad);
+                    const isExpanded = expandedRules[key];
+
+                    return (
+                      <div
+                        key={key}
+                        style={{
+                          ...styles.reglaCard,
+                          borderLeft: `4px solid ${color}`,
+                        }}
+                      >
+                        {/* Header de la regla */}
+                        <div
+                          style={styles.reglaHeader}
+                          onClick={() => toggleRule(key)}
+                        >
+                          <div style={styles.reglaHeaderLeft}>
+                            <div
+                              style={{
+                                ...styles.reglaIconContainer,
+                                background: `${color}15`,
+                              }}
+                            >
+                              <Icon size={20} color={color} />
+                            </div>
+                            <div>
+                              <h4 style={styles.reglaTitulo}>
+                                {info?.titulo || key}
+                              </h4>
+                              <p style={styles.reglaDescripcion}>
+                                {info?.descripcion}
+                              </p>
+                            </div>
+                          </div>
+                          <div style={styles.reglaHeaderRight}>
+                            <StatusIcon size={24} color={color} />
+                            {isExpanded ? (
+                              <ChevronUp size={20} color="#9ca3af" />
+                            ) : (
+                              <ChevronDown size={20} color="#9ca3af" />
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Contenido expandible */}
+                        {isExpanded && (
+                          <div style={styles.reglaContent}>
+                            <div style={styles.reglaMensaje}>
+                              <p style={styles.reglaMensajeText}>
+                                {regla.mensaje}
+                              </p>
+                            </div>
+
+                            {/* Detalles adicionales según la regla */}
+                            {key === "regla_50_30_20" && regla.porcentajes && (
+                              <div style={styles.reglaDetalles}>
+                                <p style={styles.detallesTitulo}>
+                                  Distribución actual:
+                                </p>
+                                <div style={styles.porcentajesGrid}>
+                                  <div style={styles.porcentajeItem}>
+                                    <span style={styles.porcentajeLabel}>
+                                      Necesidades
+                                    </span>
+                                    <div style={styles.progressBar}>
+                                      <div
+                                        style={{
+                                          ...styles.progressFill,
+                                          width: `${regla.porcentajes.necesidades}%`,
+                                          background:
+                                            regla.porcentajes.necesidades > 50
+                                              ? "#ef4444"
+                                              : "#10b981",
+                                        }}
+                                      ></div>
+                                    </div>
+                                    <span style={styles.porcentajeValor}>
+                                      {regla.porcentajes.necesidades}%
+                                    </span>
+                                  </div>
+                                  <div style={styles.porcentajeItem}>
+                                    <span style={styles.porcentajeLabel}>
+                                      Deseos
+                                    </span>
+                                    <div style={styles.progressBar}>
+                                      <div
+                                        style={{
+                                          ...styles.progressFill,
+                                          width: `${regla.porcentajes.deseos}%`,
+                                          background:
+                                            regla.porcentajes.deseos > 30
+                                              ? "#ef4444"
+                                              : "#10b981",
+                                        }}
+                                      ></div>
+                                    </div>
+                                    <span style={styles.porcentajeValor}>
+                                      {regla.porcentajes.deseos}%
+                                    </span>
+                                  </div>
+                                  <div style={styles.porcentajeItem}>
+                                    <span style={styles.porcentajeLabel}>
+                                      Ahorros
+                                    </span>
+                                    <div style={styles.progressBar}>
+                                      <div
+                                        style={{
+                                          ...styles.progressFill,
+                                          width: `${regla.porcentajes.ahorros}%`,
+                                          background:
+                                            regla.porcentajes.ahorros < 20
+                                              ? "#ef4444"
+                                              : "#10b981",
+                                        }}
+                                      ></div>
+                                    </div>
+                                    <span style={styles.porcentajeValor}>
+                                      {regla.porcentajes.ahorros}%
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {key === "limite_endeudamiento" &&
+                              regla.porcentaje_deuda !== undefined && (
+                                <div style={styles.reglaDetalles}>
+                                  <p style={styles.detallesTitulo}>
+                                    Nivel de endeudamiento:
+                                  </p>
+                                  <div style={styles.progressBar}>
+                                    <div
+                                      style={{
+                                        ...styles.progressFill,
+                                        width: `${regla.porcentaje_deuda}%`,
+                                        background: color,
+                                      }}
+                                    ></div>
+                                  </div>
+                                  <p style={styles.detallesTexto}>
+                                    {regla.porcentaje_deuda}% de tus ingresos
+                                    van a deudas (máximo recomendado: 40%)
+                                  </p>
+                                  {regla.nivel_riesgo && (
+                                    <span
+                                      style={{
+                                        ...styles.badge,
+                                        background: `${color}15`,
+                                        color: color,
+                                      }}
+                                    >
+                                      Riesgo: {regla.nivel_riesgo}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+
+                            {/* Recomendaciones */}
+                            {!regla.cumple && (
+                              <div style={styles.recomendacionBox}>
+                                <Lightbulb size={16} color="#667eea" />
+                                <span style={styles.recomendacionText}>
+                                  {getRecomendacion(key)}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </>
@@ -518,26 +840,50 @@ const styles = {
   semaforoContent: {
     display: "flex",
     alignItems: "center",
-    gap: "20px",
+    gap: "24px",
     marginTop: "16px",
+    flexWrap: "wrap",
   },
   semaforoIcon: {
-    width: "64px",
-    height: "64px",
+    width: "80px",
+    height: "80px",
     borderRadius: "12px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+    flexShrink: 0,
   },
   semaforoText: {
     flex: 1,
+    minWidth: "250px",
   },
   semaforoStatus: {
-    fontSize: "18px",
-    fontWeight: "600",
+    fontSize: "20px",
+    fontWeight: "700",
     marginBottom: "4px",
   },
   semaforoDesc: {
+    fontSize: "14px",
+    color: "#6b7280",
+    marginBottom: "16px",
+  },
+  scoreBar: {
+    marginTop: "12px",
+  },
+  scoreBarBg: {
+    width: "100%",
+    height: "12px",
+    background: "#e5e7eb",
+    borderRadius: "6px",
+    overflow: "hidden",
+    marginBottom: "8px",
+  },
+  scoreBarFill: {
+    height: "100%",
+    borderRadius: "6px",
+    transition: "width 0.5s ease",
+  },
+  scoreText: {
     fontSize: "13px",
     color: "#6b7280",
     margin: 0,
@@ -575,6 +921,140 @@ const styles = {
     lineHeight: "1.5",
     margin: 0,
     paddingLeft: "32px",
+  },
+  evaluacionSubtitle: {
+    fontSize: "13px",
+    color: "#6b7280",
+    marginBottom: "24px",
+  },
+  reglasGrid: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "16px",
+  },
+  reglaCard: {
+    background: "#f9fafb",
+    borderRadius: "8px",
+    overflow: "hidden",
+    transition: "all 0.2s",
+  },
+  reglaHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "16px",
+    cursor: "pointer",
+    transition: "background 0.2s",
+  },
+  reglaHeaderLeft: {
+    display: "flex",
+    alignItems: "center",
+    gap: "16px",
+    flex: 1,
+  },
+  reglaIconContainer: {
+    width: "48px",
+    height: "48px",
+    borderRadius: "8px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  reglaTitulo: {
+    fontSize: "15px",
+    fontWeight: "600",
+    color: "#111827",
+    margin: "0 0 4px 0",
+  },
+  reglaDescripcion: {
+    fontSize: "12px",
+    color: "#6b7280",
+    margin: 0,
+  },
+  reglaHeaderRight: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+  },
+  reglaContent: {
+    padding: "0 16px 16px 16px",
+    borderTop: "1px solid #e5e7eb",
+  },
+  reglaMensaje: {
+    padding: "16px",
+    background: "white",
+    borderRadius: "8px",
+    marginTop: "16px",
+  },
+  reglaMensajeText: {
+    fontSize: "14px",
+    color: "#374151",
+    margin: 0,
+    lineHeight: "1.5",
+  },
+  reglaDetalles: {
+    marginTop: "16px",
+    padding: "16px",
+    background: "white",
+    borderRadius: "8px",
+  },
+  detallesTitulo: {
+    fontSize: "13px",
+    fontWeight: "600",
+    color: "#374151",
+    marginBottom: "12px",
+  },
+  detallesTexto: {
+    fontSize: "12px",
+    color: "#6b7280",
+    margin: "8px 0",
+  },
+  porcentajesGrid: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
+  },
+  porcentajeItem: {
+    display: "grid",
+    gridTemplateColumns: "100px 1fr 60px",
+    alignItems: "center",
+    gap: "12px",
+  },
+  porcentajeLabel: {
+    fontSize: "13px",
+    color: "#374151",
+    fontWeight: "500",
+  },
+  porcentajeValor: {
+    fontSize: "13px",
+    fontWeight: "600",
+    color: "#374151",
+    textAlign: "right",
+  },
+  badge: {
+    display: "inline-block",
+    padding: "4px 12px",
+    borderRadius: "12px",
+    fontSize: "11px",
+    fontWeight: "600",
+    textTransform: "uppercase",
+    marginTop: "8px",
+  },
+  recomendacionBox: {
+    display: "flex",
+    alignItems: "flex-start",
+    gap: "12px",
+    padding: "12px 16px",
+    background: "#eff6ff",
+    border: "1px solid #dbeafe",
+    borderRadius: "8px",
+    marginTop: "16px",
+  },
+  recomendacionText: {
+    fontSize: "13px",
+    color: "#1e40af",
+    lineHeight: "1.5",
   },
 };
 

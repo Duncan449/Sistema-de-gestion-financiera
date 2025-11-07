@@ -81,6 +81,10 @@ def post_pasivo_service(pasivo_data: PasivoCreate, usuario_id: int):
         if pasivo_data.pago_mensual < 0:
             raise ValueError("El pago mensual debe ser mayor o igual a 0")
 
+        # 2.1 Validar que el pago mensual no sea mayor al monto total
+        if pasivo_data.pago_mensual > pasivo_data.monto_total:
+            raise ValueError("El pago mensual no puede ser mayor al monto total")
+
         # 3. Validar fecha de vencimiento no sea en el pasado
         if pasivo_data.fecha_vencimiento < date.today():
             raise ValueError("La fecha de vencimiento no puede ser en el pasado")
@@ -152,6 +156,10 @@ def put_pasivo_service(pasivo_id: int, pasivo_data: PasivoUpdate, usuario_id) ->
         # 3. Validar pago mensual
         if "pago_mensual" in datos and datos["pago_mensual"] < 0:
             raise ValueError("El pago mensual debe ser mayor o igual 0")
+
+        if "pago_mensual" in datos and "monto_total" in datos:
+            if datos["pago_mensual"] > datos["monto_total"]:
+                raise ValueError("El pago mensual no puede ser mayor al monto total")
 
         # 4. Validar fecha_vencimiento si se actualiza
         if "fecha_vencimiento" in datos:
