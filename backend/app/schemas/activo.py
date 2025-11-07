@@ -7,7 +7,7 @@ from datetime import date
 # Modelo para crear activo (input)
 class ActivoCreate(BaseModel):
     tipo: Literal[
-        "inmueble", "vehiculo", "inversión", "ahorro", "negocio", "otro"
+        "Inmueble", "Vehiculo", "Inversión", "Ahorro", "Negocio", "Otro"
     ]  # Opciones válidas
     valor: float
     nombre: str

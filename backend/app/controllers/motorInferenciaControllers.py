@@ -61,6 +61,7 @@ def evaluar_regla_50_30_20_controller(
             + obtener_egresos_por_categoria(usuario_id, "transporte", dias)
             + obtener_egresos_por_categoria(usuario_id, "salud", dias)
             + obtener_egresos_por_categoria(usuario_id, "servicios", dias)
+            + obtener_egresos_por_categoria(usuario_id, "deudas", dias)
         )
 
         gastos_deseos = (
@@ -70,9 +71,11 @@ def evaluar_regla_50_30_20_controller(
             + obtener_egresos_por_categoria(usuario_id, "lujos", dias)
         )
 
-        gastos_ahorros = obtener_egresos_por_categoria(
-            usuario_id, "ahorro", dias
-        ) + obtener_egresos_por_categoria(usuario_id, "inversión", dias)
+        gastos_ahorros = (
+            obtener_egresos_por_categoria(usuario_id, "ahorro", dias)
+            + obtener_egresos_por_categoria(usuario_id, "inversión", dias)
+            + obtener_egresos_por_categoria(usuario_id, "educación", dias)
+        )
 
         return regla_50_30_20(
             ingresos, gastos_necesidades, gastos_deseos, gastos_ahorros
@@ -183,7 +186,7 @@ def evaluar_lujos_vs_educacion_controller(
 
         lujos = obtener_egresos_por_categoria(usuario_id, "lujos", dias)
         educacion = obtener_egresos_por_categoria(usuario_id, "educación", dias)
-        activos = obtener_egresos_por_categoria(usuario_id, "activos", dias)
+        activos = obtener_egresos_por_categoria(usuario_id, "inversión", dias)
 
         return regla_lujos_vs_educacion(lujos, educacion, activos)
 

@@ -11,9 +11,8 @@ from app.schemas.pasivo import PasivoCreate, PasivoUpdate
 # GET PASIVOS - Devuelve la lista de pasivos
 @db_session
 def get_pasivos_service(usuario_id: int) -> List[dict]:
+    """Obtiene todos los pasivos del usuario"""
 
-    """ Obtiene todos los pasivos del usuario """
-    
     try:
 
         # Traer todos y filtrar manualmente ya que parece haber un bug, esto no da problema en BD pequeñas porque no lo hace lento por los pocos registros
@@ -30,7 +29,7 @@ def get_pasivos_service(usuario_id: int) -> List[dict]:
                     "monto_total": pasivo.monto_total,
                     "pago_mensual": pasivo.pago_mensual,
                     "fecha_vencimiento": pasivo.fecha_vencimiento,
-                    "fk_usuarios": pasivo.fk_usuarios.id  # Extraer el ID del usuario
+                    "fk_usuarios": pasivo.fk_usuarios.id,  # Extraer el ID del usuario
                 }
             )
 
@@ -44,23 +43,22 @@ def get_pasivos_service(usuario_id: int) -> List[dict]:
 # GET PASIVO - Obtener un pasivo por ID
 @db_session
 def get_pasivo_service(pasivo_id: int) -> dict:
-    
-    """ Obtiene un pasivo específico por su ID """
-    
+    """Obtiene un pasivo específico por su ID"""
+
     try:
-        pasivo = Pasivo.get(id=pasivo_id)  
+        pasivo = Pasivo.get(id=pasivo_id)
 
         if not pasivo:
             raise ValueError("Pasivo no encontrado")
 
         return {
-                    "id": pasivo.id,
-                    "nombre": pasivo.nombre,
-                    "tipo": pasivo.tipo,
-                    "monto_total": pasivo.monto_total,
-                    "pago_mensual": pasivo.pago_mensual,
-                    "fecha_vencimiento": pasivo.fecha_vencimiento,
-                    "fk_usuarios": pasivo.fk_usuarios.id  # Extraer el ID del usuario
+            "id": pasivo.id,
+            "nombre": pasivo.nombre,
+            "tipo": pasivo.tipo,
+            "monto_total": pasivo.monto_total,
+            "pago_mensual": pasivo.pago_mensual,
+            "fecha_vencimiento": pasivo.fecha_vencimiento,
+            "fk_usuarios": pasivo.fk_usuarios.id,  # Extraer el ID del usuario
         }
     except ValueError:
         raise
@@ -72,26 +70,27 @@ def get_pasivo_service(pasivo_id: int) -> dict:
 # POST PASIVO - Permite crear un pasivo
 @db_session
 def post_pasivo_service(pasivo_data: PasivoCreate, usuario_id: int):
-
-    """ Crea un nuevo pasivo en la base de datos """
+    """Crea un nuevo pasivo en la base de datos"""
 
     try:
         # 1. Validar monto total positivo
         if pasivo_data.monto_total <= 0:
             raise ValueError("El monto total debe ser mayor a 0")
-        
+
         # 2. Validar pago mensual positivo
         if pasivo_data.pago_mensual < 0:
             raise ValueError("El pago mensual debe ser mayor o igual a 0")
-        
+
         # 3. Validar fecha de vencimiento no sea en el pasado
         if pasivo_data.fecha_vencimiento < date.today():
             raise ValueError("La fecha de vencimiento no puede ser en el pasado")
-        
+
         # 4. Validar tipo de pasivo
-        tipos_validos = {"deuda", "tarjeta", "préstamo", "hipoteca"}
-        if pasivo_data.tipo.lower() not in tipos_validos:
-            raise ValueError("Tipo de pasivo inválido. Tipos válidos: deuda, tarjeta, prestamo, hipoteca.")
+        tipos_validos = {"Deuda", "Tarjeta", "Préstamo", "Hipoteca"}
+        if pasivo_data.tipo not in tipos_validos:
+            raise ValueError(
+                "Tipo de pasivo inválido. Tipos válidos: Deuda, Tarjeta, Préstamo, Hipoteca."
+            )
 
         # Obtener el usuario
         usuario = Usuario.get(id=usuario_id)
@@ -112,11 +111,11 @@ def post_pasivo_service(pasivo_data: PasivoCreate, usuario_id: int):
 
         return {
             "id": nuevo_pasivo.id,
-            "monto_total":nuevo_pasivo.monto_total,
-            "nombre":nuevo_pasivo.nombre,
-            "tipo":nuevo_pasivo.tipo,
-            "pago_mensual":nuevo_pasivo.pago_mensual,
-            "fecha_vencimiento":nuevo_pasivo.fecha_vencimiento,
+            "monto_total": nuevo_pasivo.monto_total,
+            "nombre": nuevo_pasivo.nombre,
+            "tipo": nuevo_pasivo.tipo,
+            "pago_mensual": nuevo_pasivo.pago_mensual,
+            "fecha_vencimiento": nuevo_pasivo.fecha_vencimiento,
             "fk_usuarios": nuevo_pasivo.fk_usuarios.id,
         }
 
@@ -130,8 +129,7 @@ def post_pasivo_service(pasivo_data: PasivoCreate, usuario_id: int):
 # PUT PASIVO - Permite modificar un pasivo
 @db_session
 def put_pasivo_service(pasivo_id: int, pasivo_data: PasivoUpdate, usuario_id) -> dict:
-
-    """ Actualiza un pasivo """
+    """Actualiza un pasivo"""
 
     try:
         pasivo = Pasivo.get(id=pasivo_id)
@@ -150,21 +148,23 @@ def put_pasivo_service(pasivo_id: int, pasivo_data: PasivoUpdate, usuario_id) ->
         # 2. Validar monto total
         if "monto_total" in datos and datos["monto_total"] <= 0:
             raise ValueError("El monto total debe ser mayor a 0")
-        
+
         # 3. Validar pago mensual
         if "pago_mensual" in datos and datos["pago_mensual"] < 0:
             raise ValueError("El pago mensual debe ser mayor o igual 0")
-        
+
         # 4. Validar fecha_vencimiento si se actualiza
         if "fecha_vencimiento" in datos:
             if datos["fecha_vencimiento"] < date.today():
                 raise ValueError("La fecha de vencimiento no puede ser en el pasado")
-            
+
         # 5. Validar tipo de pasivo
         tipos_validos = {"deuda", "tarjeta", "prestamo", "hipoteca"}
         if pasivo_data.tipo.lower() not in tipos_validos:
-            raise ValueError("Tipo de pasivo inválido. Tipos válidos: deuda, tarjeta, prestamo, hipoteca.")
-        
+            raise ValueError(
+                "Tipo de pasivo inválido. Tipos válidos: deuda, tarjeta, prestamo, hipoteca."
+            )
+
         # Actualizar campos
         for campo, valor in datos.items():
             setattr(pasivo, campo, valor)
@@ -172,13 +172,13 @@ def put_pasivo_service(pasivo_id: int, pasivo_data: PasivoUpdate, usuario_id) ->
         commit()
 
         return {
-                    "id": pasivo.id,
-                    "nombre": pasivo.nombre,
-                    "tipo": pasivo.tipo,
-                    "monto_total": pasivo.monto_total,
-                    "pago_mensual": pasivo.pago_mensual,
-                    "fecha_vencimiento": pasivo.fecha_vencimiento,
-                    "fk_usuarios": pasivo.fk_usuarios.id,
+            "id": pasivo.id,
+            "nombre": pasivo.nombre,
+            "tipo": pasivo.tipo,
+            "monto_total": pasivo.monto_total,
+            "pago_mensual": pasivo.pago_mensual,
+            "fecha_vencimiento": pasivo.fecha_vencimiento,
+            "fk_usuarios": pasivo.fk_usuarios.id,
         }
 
     except ValueError:
@@ -191,15 +191,14 @@ def put_pasivo_service(pasivo_id: int, pasivo_data: PasivoUpdate, usuario_id) ->
 # DELETE PASIVO - Permite eliminar un pasivo por ID
 @db_session
 def delete_pasivo_service(pasivo_id: int, usuario_id: int):
-
-    """ Elimina un pasivo de la base de datos """
+    """Elimina un pasivo de la base de datos"""
 
     try:
         pasivo = Pasivo.get(id=pasivo_id)
 
         if not pasivo:
             raise ValueError("Pasivo no encontrado")
-        
+
         # Validar que le pertenece al usuario
         if pasivo.fk_usuarios.id != usuario_id:
             raise ValueError("No tienes permiso para eliminar este pasivo")
