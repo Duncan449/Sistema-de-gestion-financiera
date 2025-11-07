@@ -132,7 +132,7 @@ def evaluar_fondo_emergencia_controller(
         validar_permiso_usuario(usuario_id, usuario_autenticado)
 
         ingresos = obtener_ingresos_totales_usuario(usuario_id, dias)
-        ahorro_total = obtener_egresos_por_categoria(usuario_id, "ahorro", dias) * 6
+        ahorro_total = obtener_egresos_por_categoria(usuario_id, "ahorro", dias)
 
         return regla_fondo_emergencia(ingresos, ahorro_total)
 

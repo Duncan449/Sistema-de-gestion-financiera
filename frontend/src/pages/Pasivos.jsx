@@ -384,7 +384,7 @@ const styles = {
     height: "50px",
     margin: "0 auto 20px",
     border: "4px solid #f3f3f3",
-    borderTop: "4px solid #667eea",
+    borderTop: "4px solid #ef4444",
     borderRadius: "50%",
     animation: "spin 1s linear infinite",
   },
@@ -405,7 +405,7 @@ const styles = {
     color: "#6b7280",
   },
   addBtn: {
-    background: "#10b981",
+    background: "#ef4444",
     color: "white",
     border: "none",
     padding: "12px 20px",
@@ -441,7 +441,7 @@ const styles = {
   statValue: {
     fontSize: "24px",
     fontWeight: "700",
-    color: "#10b981",
+    color: "#ef4444",
   },
   statDivider: {
     width: "1px",
@@ -472,7 +472,7 @@ const styles = {
     marginBottom: "24px",
   },
   emptyBtn: {
-    background: "#10b981",
+    background: "#ef4444",
     color: "white",
     border: "none",
     padding: "10px 20px",
@@ -517,7 +517,7 @@ const styles = {
   },
   categoryBadge: {
     background: "#eff6ff",
-    color: "#3b82f6",
+    color: "#ef4444",
     padding: "4px 12px",
     borderRadius: "16px",
     fontSize: "12px",
@@ -526,7 +526,7 @@ const styles = {
   },
   montoText: {
     fontWeight: "600",
-    color: "#10b981",
+    color: "#ef4444",
   },
   actionButtons: {
     display: "flex",
@@ -648,7 +648,7 @@ const styles = {
     transition: "all 0.2s",
   },
   submitBtn: {
-    background: "#10b981",
+    background: "#ef4444",
     color: "white",
     border: "none",
     padding: "10px 24px",

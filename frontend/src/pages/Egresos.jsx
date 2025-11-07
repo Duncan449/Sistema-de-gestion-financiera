@@ -427,7 +427,7 @@ const styles = {
   statValue: {
     fontSize: "24px",
     fontWeight: "700",
-    color: "#111827",
+    color: "#ef4444",
   },
   statDivider: {
     width: "1px",
