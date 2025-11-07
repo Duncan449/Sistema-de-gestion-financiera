@@ -10,6 +10,7 @@ from app.controllers.motorInferenciaControllers import (
     evaluar_inversion_educacion_controller,
     evaluar_lujos_vs_educacion_controller,
     evaluar_reserva_imprevistos_controller,
+    obtener_distribucion_gastos,
 )
 from app.services.auth_service import obtener_usuario_autenticado
 
@@ -142,3 +143,15 @@ def evaluar_reserva_imprevistos(
     Debes tener al menos 1 mes de ingresos en ahorro líquido.
     """
     return evaluar_reserva_imprevistos_controller(usuario_id, usuario, dias)
+
+
+@router.get("/distribucion-gastos/{usuario_id}")
+def obtener_distribucion_gastos_route(
+    usuario_id: int,
+    usuario: dict = Depends(obtener_usuario_autenticado),
+    dias: int = Query(30, ge=1, le=365),
+):
+    """
+    Obtiene la distribución de gastos por categoría para un usuario.
+    """
+    return obtener_distribucion_gastos(usuario_id, usuario, dias)

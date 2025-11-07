@@ -131,4 +131,9 @@ export const getSaludFinanciera = async (usuarioId, dias = 30) => {
   return response.data;
 };
 
+export const getDistribucionGastos = async (usuarioId, dias = 30) => {
+  const response = await api.get(`/analisis/distribucion-gastos/${usuarioId}?dias=${dias}`);
+  return response.data;
+};
+
 export default api;
