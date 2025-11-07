@@ -273,7 +273,14 @@ def evaluar_salud_financiera(usuario_id: int, dias: int = 30) -> Dict:
     gastos_necesidades = sum(
         [
             obtener_egresos_por_categoria(usuario_id, c, dias)
-            for c in ["vivienda", "comida", "transporte", "salud", "servicios"]
+            for c in [
+                "vivienda",
+                "comida",
+                "transporte",
+                "salud",
+                "servicios",
+                "deudas",
+            ]
         ]
     )
     gastos_deseos = sum(

@@ -9,6 +9,21 @@ import {
 } from "../api/api";
 import { Plus, Edit2, Trash2, DollarSign, Calendar, Tag } from "lucide-react";
 
+// Categorías predefinidas para ingresos
+const CATEGORIAS_INGRESO = [
+  "sueldo",
+  "honorarios",
+  "comisiones",
+  "rentas",
+  "dividendos",
+  "intereses",
+  "regalías",
+  "negocio",
+  "pensión",
+  "subsidio",
+  "otros",
+];
+
 const Ingresos = () => {
   const [ingresos, setIngresos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -68,7 +83,7 @@ const Ingresos = () => {
         await deleteIngreso(id);
         cargarIngresos();
       } catch (error) {
-        alert("Error al eliminar");
+        alert(error.response?.data?.detail || "Error al eliminar");
       }
     }
   };
@@ -270,14 +285,21 @@ const Ingresos = () => {
                 <select
                   name="categoria"
                   value={formData.categoria}
-                  onChange={handleEdit}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      categoria: e.target.value.toLowerCase(),
+                    })
+                  }
                   style={styles.select}
+                  required
                 >
-                  <option value="">Seleccione Categoria</option>
-                  <option value="deuda">Deuda</option>
-                  <option value="tarjeta">Tarjeta</option>
-                  <option value="préstamo">Prestamo</option>
-                  <option value="hipoteca">Hipoteca</option>
+                  <option value="">Seleccione Categoría</option>
+                  {CATEGORIAS_INGRESO.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                    </option>
+                  ))}
                 </select>
               </div>
 

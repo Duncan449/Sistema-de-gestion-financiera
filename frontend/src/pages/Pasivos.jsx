@@ -279,10 +279,10 @@ const Pasivos = () => {
                   style={styles.select}
                 >
                   <option value="">Seleccione tipo</option>
-                  <option value="deuda">Deuda</option>
-                  <option value="tarjeta">Tarjeta</option>
-                  <option value="préstamo">Prestamo</option>
-                  <option value="hipoteca">Hipoteca</option>
+                  <option value="Deuda">Deuda</option>
+                  <option value="Tarjeta">Tarjeta</option>
+                  <option value="Préstamo">Préstamo</option>
+                  <option value="Hipoteca">Hipoteca</option>
                 </select>
               </div>
 
