@@ -1,7 +1,7 @@
 // frontend/src/pages/Dashboard.jsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
-import { getSaludFinanciera } from "../api/api";
+import { getSaludFinanciera, getDistribucionGastos } from "../api/api";
 import Sidebar from "../components/Sidebar";
 import {
   ArrowUpCircle,
@@ -37,16 +37,16 @@ import {
 
 const Dashboard = () => {
   const { user } = useAuth();
+
+  // --- Estados principales ---
   const [analisis, setAnalisis] = useState(null);
   const [loading, setLoading] = useState(true);
   const [dias, setDias] = useState(30);
   const [expandedRules, setExpandedRules] = useState({});
+  const [datosDistribucion, setDatosDistribucion] = useState([]);
 
-  useEffect(() => {
-    cargarAnalisis();
-  }, [dias]);
-
-  const cargarAnalisis = async () => {
+  // --- Funciones ---
+  const cargarAnalisis = useCallback(async () => {
     try {
       setLoading(true);
       const data = await getSaludFinanciera(user.usuario_id, dias);
@@ -56,7 +56,31 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, dias]);
+
+  // --- useEffects ---
+  useEffect(() => {
+    cargarAnalisis();
+  }, [cargarAnalisis]);
+
+  useEffect(() => {
+    const usuarioId = user?.usuario_id || localStorage.getItem("usuarioId");
+    if (!usuarioId) return;
+
+    getDistribucionGastos(usuarioId)
+      .then((data) => {
+        if (!data?.distribucion) return;
+        const formateado = data.distribucion.map((item) => ({
+          name: item.categoria,
+          value: item.monto,
+          color: "#" + Math.floor(Math.random() * 16777215).toString(16),
+        }));
+        setDatosDistribucion(formateado);
+      })
+      .catch((error) =>
+        console.error("Error al obtener distribución de gastos:", error)
+      );
+  }, [user]);
 
   const toggleRule = (ruleKey) => {
     setExpandedRules((prev) => ({
@@ -65,6 +89,7 @@ const Dashboard = () => {
     }));
   };
 
+  // --- Loader ---
   if (loading) {
     return (
       <div style={styles.layout}>
@@ -72,17 +97,18 @@ const Dashboard = () => {
         <div style={styles.mainContent}>
           <div style={styles.loadingCard}>
             <div style={styles.spinner}></div>
-            <h2>Cargando análisis financiero</h2>
+            <h2>Cargando análisis financiero...</h2>
           </div>
         </div>
       </div>
     );
   }
 
-  // Calcular semáforo
+  // --- Cálculo de semáforo ---
   const calcularSemaforo = () => {
     if (!analisis)
       return { status: "neutral", mensaje: "Sin datos", color: "#9e9e9e" };
+
     const porcentaje = analisis.puntuacion_general.porcentaje;
 
     if (porcentaje >= 75) {
@@ -94,7 +120,7 @@ const Dashboard = () => {
       };
     } else if (porcentaje >= 50) {
       return {
-        status: "Necesita Atención",
+        status: "Atención",
         mensaje: "Tu salud financiera necesita mejoras",
         color: "#f59e0b",
         icon: AlertCircle,
@@ -111,24 +137,8 @@ const Dashboard = () => {
 
   const semaforo = calcularSemaforo();
 
-  // Datos para gráfico de distribución (simulados por categoría)
-  const datosDistribucion = [
-    { name: "Vivienda", value: 1000000, color: "#667eea" },
-    { name: "Alimentación", value: 600000, color: "#10b981" },
-    { name: "Transporte", value: 400000, color: "#f59e0b" },
-    { name: "Ocio", value: 500000, color: "#ef4444" },
-    { name: "Otros", value: 300000, color: "#8b5cf6" },
-  ];
-
-  // Datos para gráfico de evolución (simulados)
-  const datosEvolucion = [
-    { mes: "Ene", ingresos: 3200000, gastos: 2600000 },
-    { mes: "Feb", ingresos: 3400000, gastos: 2700000 },
-    { mes: "Mar", ingresos: 3300000, gastos: 2800000 },
-    { mes: "Abr", ingresos: 3500000, gastos: 2900000 },
-    { mes: "May", ingresos: 3600000, gastos: 2750000 },
-    { mes: "Jun", ingresos: 3500000, gastos: 2800000 },
-  ];
+  // Obtener datos de evolución mensual desde la API
+  const datosEvolucion = analisis?.evolucion_mensual || [];
 
   // Mapeo de nombres de reglas a títulos legibles
   const nombreReglas = {
@@ -293,30 +303,49 @@ const Dashboard = () => {
               </div>
 
               {/* Indicadores Rápidos */}
-              <div style={styles.gridTres}>
-                <IndicadorCard
-                  titulo="Ahorro Alcanzado"
-                  Icon={PiggyBank}
-                  porcentaje={8}
-                  meta={10}
-                  color="#667eea"
-                />
-                <IndicadorCard
-                  titulo="Deudas sobre Ingresos"
-                  Icon={CreditCard}
-                  porcentaje={35}
-                  meta={30}
-                  color="#f59e0b"
-                  warning={true}
-                />
-                <IndicadorCard
-                  titulo="Fondo de Emergencia"
-                  Icon={Shield}
-                  valor={1200000}
-                  meta="3 meses de gastos"
-                  color="#10b981"
-                />
-              </div>
+              {analisis && (
+                <div style={styles.gridTres}>
+                  {/* Ahorro Alcanzado */}
+                  <IndicadorCard
+                    titulo="Ahorro Alcanzado"
+                    Icon={PiggyBank}
+                    porcentaje={
+                      analisis.reglas?.regla_50_30_20?.porcentajes?.ahorros || 0
+                    }
+                    meta={20}
+                    color="#667eea"
+                  />
+
+                  {/* Deudas sobre Ingresos */}
+                  <IndicadorCard
+                    titulo="Deudas sobre Ingresos"
+                    Icon={CreditCard}
+                    porcentaje={
+                      analisis.reglas?.limite_endeudamiento?.porcentaje_deuda ||
+                      0
+                    }
+                    meta={40}
+                    color="#f59e0b"
+                    warning={
+                      (analisis.reglas?.limite_endeudamiento
+                        ?.porcentaje_deuda || 0) > 40
+                    }
+                  />
+
+                  {/* Fondo de Emergencia */}
+                  <IndicadorCard
+                    titulo="Fondo de Emergencia"
+                    Icon={Shield}
+                    valor={analisis.reglas?.fondo_emergencia?.monto_fondo || 0}
+                    meta="3 meses de gastos"
+                    color={
+                      analisis.reglas?.fondo_emergencia?.cumple
+                        ? "#10b981"
+                        : "#f59e0b"
+                    }
+                  />
+                </div>
+              )}
 
               {/* Gráficos */}
               <div style={styles.gridDos}>
@@ -351,28 +380,46 @@ const Dashboard = () => {
                 {/* Evolución Mensual */}
                 <div style={styles.card}>
                   <h3 style={styles.cardTitle}>Evolución Mensual</h3>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={datosEvolucion}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                      <XAxis
-                        dataKey="mes"
-                        stroke="#9ca3af"
-                        style={{ fontSize: "12px" }}
-                      />
-                      <YAxis stroke="#9ca3af" style={{ fontSize: "12px" }} />
-                      <Tooltip
-                        formatter={(value) => `$${value.toLocaleString()}`}
-                        contentStyle={{
-                          background: "white",
-                          border: "1px solid #e5e7eb",
-                          borderRadius: "8px",
-                        }}
-                      />
-                      <Legend />
-                      <Bar dataKey="ingresos" fill="#10b981" name="Ingresos" />
-                      <Bar dataKey="gastos" fill="#ef4444" name="Gastos" />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  {datosEvolucion.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={datosEvolucion}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                        <XAxis
+                          dataKey="mes"
+                          stroke="#9ca3af"
+                          style={{ fontSize: "12px" }}
+                        />
+                        <YAxis stroke="#9ca3af" style={{ fontSize: "12px" }} />
+                        <Tooltip
+                          formatter={(value) => `$${value.toLocaleString()}`}
+                          contentStyle={{
+                            background: "white",
+                            border: "1px solid #e5e7eb",
+                            borderRadius: "8px",
+                          }}
+                        />
+                        <Legend />
+                        <Bar
+                          dataKey="ingresos"
+                          fill="#10b981"
+                          name="Ingresos"
+                        />
+                        <Bar dataKey="gastos" fill="#ef4444" name="Gastos" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div
+                      style={{
+                        padding: "40px",
+                        textAlign: "center",
+                        color: "#9ca3af",
+                      }}
+                    >
+                      <p>
+                        No hay datos de evolución para el período seleccionado
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 

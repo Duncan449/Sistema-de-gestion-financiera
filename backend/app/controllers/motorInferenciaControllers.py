@@ -5,6 +5,7 @@ from app.services.motorInferenciaService import (
     obtener_ingresos_totales_usuario,
     obtener_egresos_totales_usuario,
     obtener_egresos_por_categoria,
+    obtener_distribucion_gastos_service,
 )
 from app.services.motorInferenciaService import (
     regla_50_30_20,
@@ -27,6 +28,23 @@ def validar_permiso_usuario(usuario_id: int, usuario_autenticado: dict):
             status_code=403,
             detail="No tienes permiso para ver el análisis de otro usuario",
         )
+
+
+def obtener_distribucion_gastos(
+    usuario_id: int, usuario_autenticado: dict, dias: int = 30
+):
+    """
+    Controlador para obtener la distribución de gastos por categoría.
+    """
+    try:
+        validar_permiso_usuario(usuario_id, usuario_autenticado)
+        data = obtener_distribucion_gastos_service(usuario_id, dias)
+        return {"usuario_id": usuario_id, "distribucion": data}
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error en obtener_distribucion_gastos: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 def evaluar_salud_financiera_controller(

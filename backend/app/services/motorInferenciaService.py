@@ -23,9 +23,64 @@ def limpiar_texto(texto: str) -> str:
     return emoji_pattern.sub('', texto).strip()
 
 
+
 # ============================================================
 # FUNCIONES AUXILIARES (con filtrado manual para evitar errores)
 # ============================================================
+@db_session
+def obtener_evolucion_mensual(usuario_id: int, dias: int = 365) -> List[Dict]:
+    """
+    Obtiene la evolución mensual de ingresos y egresos del usuario
+    """
+    from datetime import datetime, timedelta
+    from collections import defaultdict
+
+    fecha_inicio = datetime.now().date() - timedelta(days=dias)
+
+    # Obtener ingresos
+    ingresos = [
+        i
+        for i in list(Ingreso.select())
+        if i.fk_usuarios.id == usuario_id and i.fecha >= fecha_inicio
+    ]
+
+    # Obtener egresos
+    egresos = [
+        e
+        for e in list(Egreso.select())
+        if e.fk_usuarios.id == usuario_id and e.fecha >= fecha_inicio
+    ]
+
+    # Agrupar por mes
+    meses_ingresos = defaultdict(float)
+    meses_egresos = defaultdict(float)
+
+    for ingreso in ingresos:
+        mes_key = ingreso.fecha.strftime("%Y-%m")
+        meses_ingresos[mes_key] += ingreso.monto
+
+    for egreso in egresos:
+        mes_key = egreso.fecha.strftime("%Y-%m")
+        meses_egresos[mes_key] += egreso.monto
+
+    # Combinar y ordenar
+    todos_meses = set(meses_ingresos.keys()) | set(meses_egresos.keys())
+
+    resultado = []
+    for mes_key in sorted(todos_meses):
+        # Formatear mes (e.g., "2024-11" -> "Nov 2024")
+        fecha = datetime.strptime(mes_key, "%Y-%m")
+        mes_nombre = fecha.strftime("%b %Y")
+
+        resultado.append(
+            {
+                "mes": mes_nombre,
+                "ingresos": round(meses_ingresos.get(mes_key, 0), 2),
+                "gastos": round(meses_egresos.get(mes_key, 0), 2),
+            }
+        )
+
+    return resultado
 
 
 @db_session
@@ -244,19 +299,32 @@ def regla_fondo_emergencia(ingresos, ahorro_total) -> Dict:
             "nivel": "sin datos",
             "mensaje": "No hay ingresos ni ahorros registrados para evaluar el fondo de emergencia",
             "severidad": "warning",
+            "meses_cubiertos": 0,
         }
 
+    # Calcular montos objetivo
     minimo, ideal = ingresos * 3, ingresos * 6
+
+    # Cálculo de cuántos meses de gastos cubre el ahorro actual
+    meses_cubiertos = ahorro_total / ingresos
+
+    # Determinar nivel
     if ahorro_total >= ideal:
         nivel = "excelente"
     elif ahorro_total >= minimo:
         nivel = "bueno"
     else:
         nivel = "insuficiente"
+
     return {
         "cumple": ahorro_total >= minimo,
         "nivel": nivel,
-        "mensaje": f"Fondo actual ${ahorro_total:.2f}, mínimo ${minimo:.2f}, ideal ${ideal:.2f}",
+        "meses_cubiertos": round(meses_cubiertos, 1),
+        "monto_fondo": ahorro_total,  # 👈 este es el valor que vas a mostrar
+        "mensaje": (
+            f"Tienes un fondo de ${ahorro_total:,.2f}, cubre aproximadamente {meses_cubiertos:.1f} meses "
+            f"(mínimo recomendado: 3 meses, ideal: 6 meses)"
+        ),
         "severidad": (
             "success"
             if ahorro_total >= ideal
@@ -369,6 +437,9 @@ def evaluar_salud_financiera(usuario_id: int, dias: int = 30) -> Dict:
         + obtener_egresos_por_categoria(usuario_id, "inversión", dias)
         + obtener_egresos_por_categoria(usuario_id, "educación", dias)
     )
+
+    fondo_emergencia = obtener_egresos_por_categoria(usuario_id, "ahorro", dias)
+
     gastos_educacion = obtener_egresos_por_categoria(usuario_id, "educación", dias)
     gastos_lujos = obtener_egresos_por_categoria(usuario_id, "lujos", dias)
     ahorro_liquido = obtener_egresos_por_categoria(usuario_id, "ahorro", dias)
@@ -388,7 +459,7 @@ def evaluar_salud_financiera(usuario_id: int, dias: int = 30) -> Dict:
         "gasta_mas_que_gana": regla_gasta_mas_que_gana(
             ingresos_totales, egresos_totales
         ),
-        "fondo_emergencia": regla_fondo_emergencia(ingresos_totales, gastos_ahorros),
+        "fondo_emergencia": regla_fondo_emergencia(ingresos_totales, fondo_emergencia),
         "sin_inversiones": regla_sin_inversiones(valor_activos, flujo_activos),
         "inversion_educacion": regla_inversion_educacion(
             gastos_educacion, ingresos_totales
@@ -425,4 +496,13 @@ def evaluar_salud_financiera(usuario_id: int, dias: int = 30) -> Dict:
             "total": total,
             "porcentaje": round((reglas_cumplidas / total) * 100, 2),
         },
+        "evolucion_mensual": obtener_evolucion_mensual(usuario_id, dias),
     }
+
+
+@db_session
+def obtener_distribucion_gastos_service(usuario_id: int, dias: int = 30):
+    """
+    Devuelve los gastos agrupados por categoría para un usuario.
+    """
+    return obtener_categorias_usuario(usuario_id, dias)
